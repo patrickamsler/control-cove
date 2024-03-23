@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import LightControl from './components/LightControl';
+import LightControl from './components/LightControl/LightControl';
 import { CssBaseline, Box } from '@mui/material';
+import { connectToBroker, disconnectFromBroker } from "./services/mqttClient";
 
 const theme = createTheme({
   palette: {
@@ -10,6 +11,14 @@ const theme = createTheme({
 });
 
 const App = () => {
+
+  useEffect(() => {
+    const mqttClient = connectToBroker();
+    return () => {
+      disconnectFromBroker();
+    };
+  }, []);
+
   return (
       <ThemeProvider theme={theme}>
         <CssBaseline />
