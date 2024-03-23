@@ -43,22 +43,24 @@ const LightControl = () => {
 
   useEffect(() => {
     connectToBroker(() => {
-      // subscribe to state topics for each light
-      lightConfig.forEach((light, index) => {
-        subscribeToTopic(light.stateTopic, (message) => {
-          setSwitchStates((prevStates) => {
-            const newStates = [...prevStates];
-            newStates[index] = message === 'on';
-            return newStates;
-          });
-        });
-      });
+      subscribeToTopics();
     });
-
     return () => {
       disconnectFromBroker();
     };
   }, []);
+
+  const subscribeToTopics = () => {
+    lightConfig.forEach((light, index) => {
+      subscribeToTopic(light.stateTopic, (message) => {
+        setSwitchStates((prevStates) => {
+          const newStates = [...prevStates];
+          newStates[index] = message === 'on';
+          return newStates;
+        });
+      });
+    });
+  }
 
   const handleSwitchChange = (event: React.ChangeEvent<HTMLInputElement>, index: number, commandTopic: string) => {
     const switchState = event.target.checked;
@@ -71,7 +73,7 @@ const LightControl = () => {
   };
 
   return (
-      <Card>
+      <Card sx={{ borderRadius: 2 }}>
         <CardContent>
           <Stack direction="column" spacing={2}>
             {lightConfig.map((light, index) => (
