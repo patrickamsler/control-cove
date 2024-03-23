@@ -22,3 +22,27 @@ export const disconnectFromBroker = () => {
     client.end();
   }
 };
+
+export const publishMessage = (topic: string, message: string) => {
+  if (client) {
+    client.publish(topic, message);
+  }
+}
+
+export const subscribeToTopic = (topic: string, onMessage: (message: string) => void) => {
+  if (client) {
+    client.subscribe(topic, (err) => {
+      if (err) {
+        console.error(`Failed to subscribe to topic ${topic}: ${err}`);
+      } else {
+        console.log(`Successfully subscribed to topic ${topic}`);
+      }
+    });
+
+    client.on('message', (receivedTopic, message) => {
+      if (receivedTopic === topic) {
+        onMessage(message.toString());
+      }
+    });
+  }
+}

@@ -13,7 +13,7 @@ const theme = createTheme({
 const App = () => {
 
   useEffect(() => {
-    const mqttClient = connectToBroker();
+    connectToBroker();
     return () => {
       disconnectFromBroker();
     };
