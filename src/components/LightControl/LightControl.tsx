@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, FormControlLabel, Switch, Stack } from '@mui/material';
-import { publishMessage, subscribeToTopic } from "../../services/mqttClient";
+import {
+  connectToBroker,
+  disconnectFromBroker,
+  publishMessage,
+  subscribeToTopic
+} from "../../services/mqttClient";
 
 const lightConfig = [
   {
@@ -37,15 +42,22 @@ const LightControl = () => {
   );
 
   useEffect(() => {
-    lightConfig.forEach((light, index) => {
-      subscribeToTopic(light.stateTopic, (message) => {
-        setSwitchStates((prevStates) => {
-          const newStates = [...prevStates];
-          newStates[index] = message === 'on';
-          return newStates;
+    connectToBroker(() => {
+      // subscribe to state topics for each light
+      lightConfig.forEach((light, index) => {
+        subscribeToTopic(light.stateTopic, (message) => {
+          setSwitchStates((prevStates) => {
+            const newStates = [...prevStates];
+            newStates[index] = message === 'on';
+            return newStates;
+          });
         });
       });
     });
+
+    return () => {
+      disconnectFromBroker();
+    };
   }, []);
 
   const handleSwitchChange = (event: React.ChangeEvent<HTMLInputElement>, index: number, commandTopic: string) => {

@@ -12,12 +12,12 @@ const theme = createTheme({
 
 const App = () => {
 
-  useEffect(() => {
-    connectToBroker();
-    return () => {
-      disconnectFromBroker();
-    };
-  }, []);
+  // useEffect(() => {
+  //   connectToBroker();
+  //   return () => {
+  //     disconnectFromBroker();
+  //   };
+  // }, []);
 
   return (
       <ThemeProvider theme={theme}>
