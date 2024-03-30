@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Card, CardContent, FormControlLabel, Switch, Stack } from '@mui/material';
+import { Card, CardContent, FormControlLabel, Switch, Stack, Typography } from '@mui/material';
 import {
   connectToBroker,
   disconnectFromBroker,
   publishMessage,
   subscribeToTopic
 } from "../../services/mqttClient";
-import lightConfig from "../../light-config.json";
+import lightConfig from "../../config/light-config.json";
 
 
 const LightControl = () => {
@@ -48,6 +48,9 @@ const LightControl = () => {
   return (
       <Card sx={{ borderRadius: 2 }}>
         <CardContent>
+          <Typography gutterBottom variant="h5" component="div" paddingBottom={1}>
+            Light Control
+          </Typography>
           <Stack direction="column" spacing={2}>
             {lightConfig.map((light, index) => (
                 <FormControlLabel
