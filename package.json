@@ -27,7 +27,8 @@
     "electron": "electron .",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "package": "electron-packager . --overwrite --platform=darwin --arch=x64 --prune=true --out=release-builds"
   },
   "eslintConfig": {
     "extends": [
@@ -49,6 +50,8 @@
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
-    "electron": "^29.1.5"
+    "electron": "^29.1.5",
+    "electron-packager": "^17.1.2",
+    "json-loader": "^0.5.7"
   }
 }

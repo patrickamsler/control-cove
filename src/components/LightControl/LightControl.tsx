@@ -6,34 +6,7 @@ import {
   publishMessage,
   subscribeToTopic
 } from "../../services/mqttClient";
-
-const lightConfig = [
-  {
-    name: 'Dining Room Light',
-    commandTopic: 'shellies/shelly1-C45BBE4744D5/relay/0/command',
-    stateTopic: 'shellies/shelly1-C45BBE4744D5/relay/0',
-  },
-  {
-    name: 'Kitchen Light',
-    commandTopic: 'shellies/shelly1-349454735FE0/relay/0/command',
-    stateTopic: 'shellies/shelly1-349454735FE0/relay/0',
-  },
-  {
-    name: 'Living Room Light',
-    commandTopic: 'shellies/shelly1-3494547359B3/relay/0/command',
-    stateTopic: 'shellies/shelly1-3494547359B3/relay/0',
-  },
-  {
-    name: 'Entrance Light',
-    commandTopic: 'shellies/shelly1-349454737F5C/relay/0/command',
-    stateTopic: 'shellies/shelly1-349454737F5C/relay/0',
-  },
-  {
-    name: 'Bedroom Light',
-    commandTopic: 'shellies/shelly1-349454735FDB/relay/0/command',
-    stateTopic: 'shellies/shelly1-349454735FDB/relay/0',
-  }
-]
+import lightConfig from "../../light-config.json";
 
 
 const LightControl = () => {
