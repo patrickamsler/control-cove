@@ -7,6 +7,7 @@ import {
   subscribeToTopic
 } from "../../services/mqttClient";
 import lightConfig from "../../config/light-config.json";
+import CoveCard from "../CoveCard/CoveCard";
 
 
 const LightControl = () => {
@@ -46,11 +47,7 @@ const LightControl = () => {
   };
 
   return (
-      <Card sx={{ borderRadius: 2 }}>
-        <CardContent>
-          <Typography gutterBottom variant="h5" component="div" paddingBottom={1}>
-            Light Control
-          </Typography>
+      <CoveCard title={'Light Control'}>
           <Stack direction="column" spacing={2}>
             {lightConfig.map((light, index) => (
                 <FormControlLabel
@@ -66,8 +63,7 @@ const LightControl = () => {
                 />
             ))}
           </Stack>
-        </CardContent>
-      </Card>
+      </CoveCard>
   );
 }
 

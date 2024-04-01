@@ -1,8 +1,8 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import LightControl from './components/LightControl/LightControl';
-import { CssBaseline, Box } from '@mui/material';
-import { connectToBroker, disconnectFromBroker } from "./services/mqttClient";
+import { CssBaseline, Box, Grid } from '@mui/material';
+import SensorDisplay from './components/SensorDisplay/SensorDisplay';
 
 const theme = createTheme({
   palette: {
@@ -12,18 +12,18 @@ const theme = createTheme({
 
 const App = () => {
 
-  // useEffect(() => {
-  //   connectToBroker();
-  //   return () => {
-  //     disconnectFromBroker();
-  //   };
-  // }, []);
-
   return (
       <ThemeProvider theme={theme}>
-        <CssBaseline />
+        <CssBaseline/>
         <Box padding={2}>
-          <LightControl />
+          <Grid container spacing={2}>
+            <Grid item xs={6}>
+              <LightControl/>
+            </Grid>
+            <Grid item xs={6}>
+              <SensorDisplay/>
+            </Grid>
+          </Grid>
         </Box>
       </ThemeProvider>
   );
