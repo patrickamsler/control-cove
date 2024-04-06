@@ -1,11 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Card, CardContent, FormControlLabel, Switch, Stack, Typography } from '@mui/material';
-import {
-  connectToBroker,
-  disconnectFromBroker,
-  publishMessage,
-  subscribeToTopic
-} from "../../services/mqttClient";
+import { FormControlLabel, Switch, Stack } from '@mui/material';
+import { publishMessage, subscribeToTopic, unsubscribeFromTopic } from "../../services/mqttClient";
 import lightConfig from "../../config/light-config.json";
 import CoveCard from "../CoveCard/CoveCard";
 
@@ -16,11 +11,9 @@ const LightControl = () => {
   );
 
   useEffect(() => {
-    connectToBroker(() => {
       subscribeToTopics();
-    });
     return () => {
-      disconnectFromBroker();
+      unsubscribeFromTopics();
     };
   }, []);
 
@@ -33,6 +26,12 @@ const LightControl = () => {
           return newStates;
         });
       });
+    });
+  }
+
+  const unsubscribeFromTopics = () => {
+    lightConfig.forEach((light) => {
+      unsubscribeFromTopic(light.stateTopic);
     });
   }
 

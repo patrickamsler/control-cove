@@ -2,6 +2,7 @@ import mqtt, { MqttClient } from 'mqtt';
 
 
 let client: MqttClient;
+const listeners: { [topic: string]: (message: string) => void } = {};
 
 export const connectToBroker = (onConnect?: () => void) => {
   if (!client) {
@@ -14,6 +15,12 @@ export const connectToBroker = (onConnect?: () => void) => {
       console.log('connected to MQTT broker')
       if (onConnect) {
         onConnect();
+      }
+    });
+    client.on('message', (receivedTopic, message) => {
+      if (listeners[receivedTopic]) {
+        console.log(`Received message on topic ${receivedTopic}: ${message.toString()}`);
+        listeners[receivedTopic](message.toString());
       }
     });
   }
@@ -35,18 +42,13 @@ export const publishMessage = (topic: string, message: string) => {
 
 export const subscribeToTopic = (topic: string, onMessage: (message: string) => void) => {
   if (client.connected) {
+    console.log(`Subscribing to topic ${topic} ${Object.keys(listeners).length}`);
     client.subscribe(topic, (err) => {
       if (err) {
         console.error(`Failed to subscribe to topic ${topic}: ${err}`);
       } else {
         console.log(`Successfully subscribed to topic ${topic}`);
-      }
-    });
-
-    client.on('message', (receivedTopic, message) => {
-      console.log(`Received message on topic ${receivedTopic}: ${message.toString()}`);
-      if (receivedTopic === topic) {
-        onMessage(message.toString());
+        listeners[topic] = onMessage; // only store the latest listener
       }
     });
   }
@@ -61,5 +63,6 @@ export const unsubscribeFromTopic = (topic: string) => {
         console.log(`Successfully unsubscribed from topic ${topic}`);
       }
     });
+    delete listeners[topic]; // remove the listener
   }
 }
