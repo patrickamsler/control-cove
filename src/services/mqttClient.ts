@@ -10,19 +10,26 @@ export const connectToBroker = (onConnect?: () => void) => {
       username: 'iot',
       password: 'watt-timbrel-pepper-biology'
     };
-    client = mqtt.connect('ws://192.168.1.2:9001', options);
-    client.on('connect', () => {
-      console.log('connected to MQTT broker')
-      if (onConnect) {
-        onConnect();
-      }
-    });
-    client.on('message', (receivedTopic, message) => {
-      if (listeners[receivedTopic]) {
-        console.log(`Received message on topic ${receivedTopic}: ${message.toString()}`);
-        listeners[receivedTopic](message.toString());
-      }
-    });
+    try {
+      client = mqtt.connect('ws://192.168.1.2:9001', options);
+      client.on('connect', () => {
+        console.log('connected to MQTT broker')
+        if (onConnect) {
+          onConnect();
+        }
+      });
+      client.on('message', (topic, message) => {
+        if (listeners[topic]) {
+          console.log(`Received message on topic ${topic}: ${message.toString()}`);
+          listeners[topic](message.toString());
+        }
+      });
+      client.on('error', (error) => {
+        console.error(`MQTT connection error: ${error}`);
+      });
+    } catch (error) {
+      console.error(`Failed to connect to MQTT broker: ${error}`);
+    }
   }
   return client;
 };
