@@ -46,7 +46,7 @@ const LightControl = () => {
   };
 
   return (
-      <CoveCard title={'Light Control'}>
+      <CoveCard title={'Light'}>
           <Stack direction="column" spacing={2}>
             {lightConfig.map((light, index) => (
                 <FormControlLabel
