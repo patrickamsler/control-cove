@@ -1,17 +1,22 @@
 import mqtt, { MqttClient } from 'mqtt';
-
+import brokerConfig from '../config/broker-config.json';
 
 let client: MqttClient;
 const listeners: { [topic: string]: (message: string) => void } = {};
 
 export const connectToBroker = (onConnect?: () => void) => {
   if (!client) {
+    if (!brokerConfig.username || !brokerConfig.password) {
+      throw new Error('Broker username and password are required');
+    }
     const options = {
-      username: 'iot',
-      password: 'watt-timbrel-pepper-biology'
+      username: brokerConfig.username,
+      password: brokerConfig.password,
     };
     try {
-      client = mqtt.connect('ws://192.168.1.2:9001', options);
+      // read the broker URL from the config file
+      const url = brokerConfig.host + ':' + brokerConfig.port;
+      client = mqtt.connect(url, options);
       client.on('connect', () => {
         console.log('connected to MQTT broker')
         if (onConnect) {
