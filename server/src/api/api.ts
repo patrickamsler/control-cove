@@ -1,6 +1,6 @@
 import { Request, Response, Express } from 'express';
-import sensorConfig from './config/sensor-config.json';
-import switchConfig from './config/light-config.json';
+import sensorConfig from '../config/sensor-config.json';
+import switchConfig from '../config/light-config.json';
 import { ConfigDto } from "./dto/config-dto";
 
 export function setupRestEndpoints(app: Express) {

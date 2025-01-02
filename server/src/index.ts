@@ -2,9 +2,9 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import { createServer } from 'http';
 
-import { setupRestEndpoints } from './api';
-import { MqttService } from "./mqtt-service";
-import { SensorDataService } from "./sensor-data-service";
+import { setupRestEndpoints } from './api/api';
+import { MqttService } from './services/mqtt-service';
+import { SensorDataService } from './services/sensor-data-service';
 
 const app = express();
 app.use(bodyParser.json());

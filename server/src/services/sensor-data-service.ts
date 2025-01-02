@@ -1,6 +1,6 @@
 import { MqttService } from "./mqtt-service";
-import sensorConfig from './config/sensor-config.json';
-import switchConfig from './config/light-config.json';
+import sensorConfig from '../config/sensor-config.json';
+import switchConfig from '../config/light-config.json';
 
 export interface SensorData {
   device_id: String

@@ -1,5 +1,5 @@
 import mqtt, { MqttClient } from 'mqtt';
-import brokerConfig from './config/broker-config.json'
+import brokerConfig from '../config/broker-config.json'
 
 export class MqttService {
 
