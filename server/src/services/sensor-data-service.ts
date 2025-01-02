@@ -7,6 +7,7 @@ export interface SensorData {
   humidity: Number
   temperature: Number
 }
+
 export interface SwitchData {
   device_id: String
   state: String
@@ -40,7 +41,8 @@ export class SensorDataService {
     switchConfig.forEach((light) => {
       this.mqttService.subscribeToTopic(light.stateTopic, (message) => {
         const device_id = light.stateTopic.split('/')[1];
-        const data = {device_id: device_id, state: message ? 'ON' : 'OFF'};
+        const state = message ? 'ON' : 'OFF';
+        const data = {device_id, state};
         this.addSwitchData(light.id, data);
       });
     })
