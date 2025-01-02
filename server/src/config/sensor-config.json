@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Livingroom",
+    "statusTopic": "devices/livingroom/sensors/status"
+  },
+  {
+    "name": "Bathroom",
+    "statusTopic": "devices/bathroom/sensors/status"
+  },
+  {
+    "name": "Bedroom",
+    "statusTopic": "devices/bedroom/sensors/status"
+  }
+]
