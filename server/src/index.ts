@@ -10,7 +10,7 @@ const app = express();
 app.use(bodyParser.json());
 const httpServer = createServer(app);
 const io = setupWebSocket(httpServer);
-setupMqttClient(io);
+setupMqttClient();
 setupRestEndpoints(app);
 
 const PORT = process.env.PORT || 3000;

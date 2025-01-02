@@ -1,14 +1,11 @@
 export interface SensorData {
-  timestamp: number;
-  value: number;
+  device_id: String
+  humidity: Number
+  temperature: Number
 }
 
-let sensorDataStorage: SensorData[] = [];
+let sensorDataStorage: Map<String, SensorData> = new Map();
 
-export function getAllSensorData(): SensorData[] {
-  return sensorDataStorage;
-}
-
-export function addSensorData(data: SensorData): void {
-  sensorDataStorage.push(data);
+export function addSensorData(topic: String, data: SensorData): void {
+  sensorDataStorage.set(topic, data);
 }

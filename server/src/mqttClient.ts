@@ -1,8 +1,8 @@
 // server/src/mqttClient.ts
 import mqtt from 'mqtt';
 import brokerConfig from './config/broker-config.json';
-import { Server as SocketIOServer } from 'socket.io';
 import { SensorData, addSensorData } from './sensorDataService';
+import sensorConfig from './config/sensor-config.json';
 
 const options = {
   username: brokerConfig.username,
@@ -11,17 +11,18 @@ const options = {
 const MQTT_BROKER_URL = brokerConfig.host + ':' + brokerConfig.port;
 const mqttClient = mqtt.connect(MQTT_BROKER_URL, options);
 
-export function setupMqttClient(io: SocketIOServer) {
+export function setupMqttClient() {
   mqttClient.on('connect', () => {
     console.log(`[MQTT] Connected to broker at ${MQTT_BROKER_URL}`);
 
-    const topicToSubscribe = 'devices/livingroom/sensors/status';
-    mqttClient.subscribe(topicToSubscribe, (err) => {
-      if (err) {
-        console.error(`[MQTT] Subscription error: ${err}`);
-      } else {
-        console.log(`[MQTT] Subscribed to topic: ${topicToSubscribe}`);
-      }
+    sensorConfig.forEach((sensor) => {
+      mqttClient.subscribe(sensor.statusTopic, (err) => {
+        if (err) {
+          console.error(`[MQTT] Subscription error: ${err}`);
+        } else {
+          console.log(`[MQTT] Subscribed to topic: ${sensor.statusTopic}`);
+        }
+      });
     });
   });
 
@@ -29,13 +30,12 @@ export function setupMqttClient(io: SocketIOServer) {
     try {
       const parsed: any = JSON.parse(message.toString());
       const newData: SensorData = {
-        timestamp: parsed.timestamp || Date.now(),
-        value: parsed.value || 0,
+        device_id: parsed.device_id || 'unknown',
+        humidity: parsed.humidity || 0,
+        temperature: parsed.temperature || 0,
       };
 
-      addSensorData(newData);
-      io.emit('newSensorData', newData);
-
+      addSensorData(topic, newData);
       console.log(`[MQTT] Received message on topic "${topic}":`, newData);
     } catch (error) {
       console.error('[MQTT] Failed to process incoming message', error);
