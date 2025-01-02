@@ -1,25 +1,30 @@
 [
   {
+    "id": 1,
     "name": "Dining Room",
     "commandTopic": "shellies/shelly1-C45BBE4744D5/relay/0/command",
     "stateTopic": "shellies/shelly1-C45BBE4744D5/relay/0"
   },
   {
+    "id": 2,
     "name": "Kitchen",
     "commandTopic": "shellies/shelly1-349454735FE0/relay/0/command",
     "stateTopic": "shellies/shelly1-349454735FE0/relay/0"
   },
   {
+    "id": 3,
     "name": "Living Room",
     "commandTopic": "shellies/shelly1-3494547359B3/relay/0/command",
     "stateTopic": "shellies/shelly1-3494547359B3/relay/0"
   },
   {
+    "id": 4,
     "name": "Entrance",
     "commandTopic": "shellies/shelly1-349454737F5C/relay/0/command",
     "stateTopic": "shellies/shelly1-349454737F5C/relay/0"
   },
   {
+    "id": 5,
     "name": "Bedroom",
     "commandTopic": "shellies/shelly1-349454735FDB/relay/0/command",
     "stateTopic": "shellies/shelly1-349454735FDB/relay/0"

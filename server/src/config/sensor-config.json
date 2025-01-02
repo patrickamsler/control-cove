@@ -1,13 +1,16 @@
 [
   {
+    "id": 1,
     "name": "Livingroom",
     "statusTopic": "devices/livingroom/sensors/status"
   },
   {
+    "id": 2,
     "name": "Bathroom",
     "statusTopic": "devices/bathroom/sensors/status"
   },
   {
+    "id": 3,
     "name": "Bedroom",
     "statusTopic": "devices/bedroom/sensors/status"
   }

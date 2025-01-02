@@ -2,9 +2,9 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import { createServer } from 'http';
 
-import { setupMqttClient } from "./mqttClient";
+import { setupMqttClient } from "./mqtt-client";
 import { setupRestEndpoints } from './api';
-import { setupWebSocket } from './webSocket';
+import { setupWebSocket } from './web-socket';
 
 const app = express();
 app.use(bodyParser.json());

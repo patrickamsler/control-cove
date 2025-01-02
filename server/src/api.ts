@@ -1,6 +1,5 @@
 import { Request, Response, Express } from 'express';
-import { publishSensorData } from './mqttClient';
-import { getAllSensorData, addSensorData } from './sensorDataService';
+import { publishSensorData } from './mqtt-client';
 
 export function setupRestEndpoints(app: Express) {
   // GET endpoint to retrieve all sensor data

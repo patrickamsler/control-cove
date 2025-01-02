@@ -1,7 +1,7 @@
-// server/src/mqttClient.ts
+// server/src/mqtt-client.ts
 import mqtt from 'mqtt';
 import brokerConfig from './config/broker-config.json';
-import { SensorData, addSensorData } from './sensorDataService';
+import { SensorData, addSensorData } from './sensor-data-service';
 import sensorConfig from './config/sensor-config.json';
 
 const options = {

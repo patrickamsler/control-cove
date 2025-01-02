@@ -1,5 +1,5 @@
 import { Server as SocketIOServer } from 'socket.io';
-import { getAllSensorData } from './sensorDataService';
+import { getAllSensorData } from './sensor-data-service';
 import { Server as HttpServer } from 'http';
 
 export function setupWebSocket(httpServer: HttpServer) {
