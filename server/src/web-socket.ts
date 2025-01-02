@@ -1,5 +1,5 @@
 import { Server as SocketIOServer } from 'socket.io';
-import { getAllSensorData } from './sensor-data-service';
+// import { getAllSensorData } from './sensor-data-service';
 import { Server as HttpServer } from 'http';
 
 export function setupWebSocket(httpServer: HttpServer) {
@@ -13,7 +13,7 @@ export function setupWebSocket(httpServer: HttpServer) {
     console.log('[WebSocket] Client connected:', socket.id);
 
     // Optionally send the existing sensor data when a client connects
-    socket.emit('initialData', getAllSensorData());
+    // socket.emit('initialData', getAllSensorData());
 
     socket.on('disconnect', () => {
       console.log('[WebSocket] Client disconnected:', socket.id);
