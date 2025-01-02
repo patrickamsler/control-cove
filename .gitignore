@@ -1,32 +1,23 @@
-# -----------------------------
-# DEPENDENCIES
-# -----------------------------
 /node_modules
 /server/node_modules
 /client/node_modules
+
+/server/dist
+/client/dist
 
 # If you’re using Yarn Plug’n’Play
 /.pnp
 .pnp.js
 
-# -----------------------------
-# TESTING
-# -----------------------------
 /coverage
 /server/coverage
 /client/coverage
 
-# -----------------------------
-# PRODUCTION/BUILD
-# -----------------------------
 /build
 /client/build
 /server/build
 /release-builds
 
-# -----------------------------
-# MISC
-# -----------------------------
 .DS_Store
 
 # Local environment files
@@ -43,5 +34,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-client/src/config/broker-config.json
 server/src/config/broker-config.json
+client/src/config/broker-config.json
+
+.idea
+*.iml

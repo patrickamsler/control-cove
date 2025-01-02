@@ -94,7 +94,7 @@ app.get('/api/sensorData', (req: Request, res: Response) => {
 
 // POST endpoint to send new data to the MQTT broker
 // Sample payload: { "timestamp": 1672531200, "value": 42 }
-app.post('/api/sensorData', (req, res) => {
+app.post('/api/sensorData', (req: Request, res: Response) => {
   const data: SensorData = req.body;
 
   try {
