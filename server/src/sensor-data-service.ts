@@ -1,11 +1,48 @@
+import { MqttService } from "./mqtt-service";
+import sensorConfig from './config/sensor-config.json';
+import switchConfig from './config/light-config.json';
+
 export interface SensorData {
   device_id: String
   humidity: Number
   temperature: Number
 }
+export interface SwitchData {
+  device_id: String
+  state: String
+}
 
-let sensorDataStorage: Map<String, SensorData> = new Map();
+export class SensorDataService {
 
-export function addSensorData(topic: String, data: SensorData): void {
-  sensorDataStorage.set(topic, data);
+  private sensorDataStorage: Map<number, SensorData> = new Map();
+  private switchDataStorage: Map<number, SwitchData> = new Map();
+  private mqttService: MqttService;
+
+  constructor(mqttService: MqttService) {
+    this.mqttService = mqttService;
+  }
+
+  private addSensorData(sensorId: number, data: SensorData): void {
+    this.sensorDataStorage.set(sensorId, data);
+  }
+
+  private addSwitchData(switchId: number, data: SwitchData): void {
+    this.switchDataStorage.set(switchId, data);
+  }
+
+  public registerMqttTopics(): void {
+    sensorConfig.forEach((sensor) => {
+      this.mqttService.subscribeToTopic(sensor.statusTopic, (message) => {
+        const data = JSON.parse(message);
+        this.addSensorData(sensor.id, data);
+      });
+    });
+    switchConfig.forEach((light) => {
+      this.mqttService.subscribeToTopic(light.stateTopic, (message) => {
+        const device_id = light.stateTopic.split('/')[1];
+        const data = {device_id: device_id, state: message ? 'ON' : 'OFF'};
+        this.addSwitchData(light.id, data);
+      });
+    })
+  }
 }
