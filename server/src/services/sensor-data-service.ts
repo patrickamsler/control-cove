@@ -23,11 +23,11 @@ export class SensorDataService {
     this.mqttService = mqttService;
   }
 
-  private addSensorData(sensorId: number, data: SensorData): void {
+  private updateSensorData(sensorId: number, data: SensorData): void {
     this.sensorDataStorage.set(sensorId, data);
   }
 
-  private addSwitchData(switchId: number, data: SwitchData): void {
+  private updateSwitchData(switchId: number, data: SwitchData): void {
     this.switchDataStorage.set(switchId, data);
   }
 
@@ -35,7 +35,7 @@ export class SensorDataService {
     sensorConfig.forEach((sensor) => {
       this.mqttService.subscribeToTopic(sensor.statusTopic, (message) => {
         const data = JSON.parse(message);
-        this.addSensorData(sensor.id, data);
+        this.updateSensorData(sensor.id, data);
       });
     });
     switchConfig.forEach((light) => {
@@ -43,7 +43,7 @@ export class SensorDataService {
         const device_id = light.stateTopic.split('/')[1];
         const state = message ? 'ON' : 'OFF';
         const data = {device_id, state};
-        this.addSwitchData(light.id, data);
+        this.updateSwitchData(light.id, data);
       });
     })
   }
