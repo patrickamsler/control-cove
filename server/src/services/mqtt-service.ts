@@ -1,5 +1,4 @@
 import mqtt, { MqttClient } from 'mqtt';
-import brokerConfig from '../config/broker-config.json'
 
 export class MqttService {
 
@@ -8,16 +7,15 @@ export class MqttService {
 
   connectToBroker = (onConnect?: () => void) => {
     if (!this.client) {
-      if (!brokerConfig.username || !brokerConfig.password) {
+      if (!process.env.MQTT_USERNAME || !process.env.MQTT_PASSWORD) {
         throw new Error('Broker username and password are required');
       }
       const options = {
-        username: brokerConfig.username,
-        password: brokerConfig.password,
+        username: process.env.MQTT_USERNAME,
+        password: process.env.MQTT_PASSWORD,
       };
       try {
-        // read the broker URL from the config file
-        const url = brokerConfig.host + ':' + brokerConfig.port;
+        const url = process.env.MQTT_URL as string;
         this.client = mqtt.connect(url, options);
         this.client.on('connect', () => {
           console.log('connected to MQTT broker')
