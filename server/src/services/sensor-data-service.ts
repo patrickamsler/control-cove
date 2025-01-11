@@ -1,14 +1,15 @@
 import { MqttService } from "./mqtt-service";
 import sensorConfig from '../config/sensor-config.json';
 import switchConfig from '../config/light-config.json';
+import { WebSocketService } from "./web-socket-service";
 
-export interface SensorData {
+interface SensorData {
   device_id: String
   humidity: Number
   temperature: Number
 }
 
-export interface SwitchData {
+interface SwitchData {
   device_id: String
   state: String
 }
@@ -18,9 +19,12 @@ export class SensorDataService {
   private sensorDataStorage: Map<number, SensorData> = new Map();
   private switchDataStorage: Map<number, SwitchData> = new Map();
   private mqttService: MqttService;
+  private webSocketService: WebSocketService;
 
-  constructor(mqttService: MqttService) {
+  constructor(mqttService: MqttService, webSocketService: WebSocketService) {
     this.mqttService = mqttService;
+    this.webSocketService = webSocketService;
+    this.webSocketService.onConnection(this.onWsConnection);
   }
 
   private updateSensorData(sensorId: number, data: SensorData): void {
@@ -29,6 +33,13 @@ export class SensorDataService {
 
   private updateSwitchData(switchId: number, data: SwitchData): void {
     this.switchDataStorage.set(switchId, data);
+  }
+
+  private onWsConnection(socket: any) {
+    console.log('WebSocket connection established');
+    socket.on('disconnect', () => {
+      console.log('WebSocket connection closed');
+    });
   }
 
   public registerMqttTopics(): void {

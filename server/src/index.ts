@@ -5,6 +5,7 @@ import { MqttService } from './services/mqtt-service';
 import { SensorDataService } from './services/sensor-data-service';
 import * as dotenv from 'dotenv';
 import configRoutes from "./routes/config-routes";
+import { WebSocketService } from "./services/web-socket-service";
 
 const result = dotenv.config();
 console.log('Environment variables loaded:', result.parsed);
@@ -14,11 +15,12 @@ const app = express();
 app.use(bodyParser.json());
 app.use(API_ROOT, configRoutes);
 
+const httpServer = createServer(app);
 const mqttClientService = new MqttService();
-const sensorDataService = new SensorDataService(mqttClientService);
+const webSocketService = new WebSocketService(httpServer);
+const sensorDataService = new SensorDataService(mqttClientService, webSocketService);
 
 const HTTP_PORT = process.env.HTTP_PORT;
-const httpServer = createServer(app);
 httpServer.listen(HTTP_PORT, () => {
   console.log(`[Server] Listening on port ${HTTP_PORT}`);
 });
