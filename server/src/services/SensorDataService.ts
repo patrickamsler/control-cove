@@ -1,7 +1,7 @@
-import { MqttService } from "./mqtt-service";
+import { MqttService } from "./MqttService";
 import sensorConfig from '../config/sensor-config.json';
 import switchConfig from '../config/light-config.json';
-import { WebSocketService } from "./web-socket-service";
+import { WebSocketService } from "./WebSocketService";
 
 interface SensorData {
   device_id: String

@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import switchConfig from "../config/light-config.json";
 import sensorConfig from "../config/sensor-config.json";
-import { ConfigDto } from "../dto/config-dto"
+import { ConfigDto } from "../dto/ConfigDto"
 
 export const getSensorConfig = (req: Request, res: Response) => {
   res.json(createConfigDto());

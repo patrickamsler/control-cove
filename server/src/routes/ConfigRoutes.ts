@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getSensorConfig } from "../controllers/config-controller";
+import { getSensorConfig } from "../controllers/ConfigController";
 
 const router = Router();
 

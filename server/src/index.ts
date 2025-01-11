@@ -1,11 +1,11 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import { createServer } from 'http';
-import { MqttService } from './services/mqtt-service';
-import { SensorDataService } from './services/sensor-data-service';
+import { MqttService } from './services/MqttService';
+import { SensorDataService } from './services/SensorDataService';
 import * as dotenv from 'dotenv';
-import configRoutes from "./routes/config-routes";
-import { WebSocketService } from "./services/web-socket-service";
+import configRoutes from "./routes/ConfigRoutes";
+import { WebSocketService } from "./services/WebSocketService";
 
 const result = dotenv.config();
 console.log('Environment variables loaded:', result.parsed);
