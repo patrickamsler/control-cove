@@ -11,7 +11,7 @@ interface SensorData {
 
 interface SwitchData {
   device_id: String
-  state: String
+  state: boolean
 }
 
 export class SensorDataService {
@@ -24,21 +24,24 @@ export class SensorDataService {
   constructor(mqttService: MqttService, webSocketService: WebSocketService) {
     this.mqttService = mqttService;
     this.webSocketService = webSocketService;
-    this.webSocketService.onConnection(this.onWsConnection);
   }
 
   private updateSensorData(sensorId: number, data: SensorData): void {
     this.sensorDataStorage.set(sensorId, data);
+    this.webSocketService.emit('sensor', {id: sensorId, data});
   }
 
   private updateSwitchData(switchId: number, data: SwitchData): void {
     this.switchDataStorage.set(switchId, data);
+    this.webSocketService.emit('switch', {id: switchId, data});
   }
 
-  private onWsConnection(socket: any) {
-    console.log('WebSocket connection established');
-    socket.on('disconnect', () => {
-      console.log('WebSocket connection closed');
+  public registerWebsocketEvents(): void {
+    this.webSocketService.onConnection(() => {
+      const initialSensorData = Array.from(this.sensorDataStorage.entries()).map(([id, data]) => ({id, data}));
+      const initialSwitchData = Array.from(this.switchDataStorage.entries()).map(([id, data]) => ({id, data}));
+      const initialData = {sensors: initialSensorData, switches: initialSwitchData};
+      this.webSocketService.emit('initial', initialData);
     });
   }
 
@@ -52,7 +55,7 @@ export class SensorDataService {
     switchConfig.forEach((light) => {
       this.mqttService.subscribeToTopic(light.stateTopic, (message) => {
         const device_id = light.stateTopic.split('/')[1];
-        const state = message ? 'ON' : 'OFF';
+        const state = message == 'on';
         const data = {device_id, state};
         this.updateSwitchData(light.id, data);
       });

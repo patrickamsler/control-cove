@@ -1,6 +1,8 @@
 import { Server as SocketIOServer } from 'socket.io';
 import { Server as HttpServer } from 'http';
 
+export type EventType = 'switch' | 'sensor' | 'initial';
+
 export class WebSocketService {
 
   private io: SocketIOServer;
@@ -13,11 +15,20 @@ export class WebSocketService {
     });
   }
 
-  onConnection(callback: (socket: any) => void) {
-    this.io.on('connection', callback);
+  onConnection(callback: () => void, disconnectCallback?: () => void) {
+    this.io.on('connection', (socket) => {
+      console.log('WebSocket connection established');
+      socket.on('disconnect', () => {
+        console.log('WebSocket connection closed');
+        if (disconnectCallback) {
+          disconnectCallback();
+        }
+      });
+      callback();
+    });
   }
 
-  emit(event: string, data: any) {
+  emit(event: EventType, data: any) {
     this.io.emit(event, data);
   }
 }
