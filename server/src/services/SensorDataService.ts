@@ -5,8 +5,8 @@ import { WebSocketService } from "./WebSocketService";
 
 interface SensorData {
   device_id: String
-  humidity: Number
-  temperature: Number
+  humidity: number
+  temperature: number
 }
 
 interface SwitchData {
@@ -18,13 +18,11 @@ export class SensorDataService {
 
   private sensorDataStorage: Map<number, SensorData> = new Map();
   private switchDataStorage: Map<number, SwitchData> = new Map();
-  private mqttService: MqttService;
-  private webSocketService: WebSocketService;
 
-  constructor(mqttService: MqttService, webSocketService: WebSocketService) {
-    this.mqttService = mqttService;
-    this.webSocketService = webSocketService;
-  }
+  constructor(
+      private mqttService: MqttService,
+      private webSocketService: WebSocketService
+  ) {}
 
   private updateSensorData(sensorId: number, data: SensorData): void {
     this.sensorDataStorage.set(sensorId, data);
@@ -37,11 +35,11 @@ export class SensorDataService {
   }
 
   public registerWebsocketEvents(): void {
-    this.webSocketService.onConnection(() => {
+    this.webSocketService.onConnection((socket) => {
       const initialSensorData = Array.from(this.sensorDataStorage.entries()).map(([id, data]) => ({id, data}));
       const initialSwitchData = Array.from(this.switchDataStorage.entries()).map(([id, data]) => ({id, data}));
       const initialData = {sensors: initialSensorData, switches: initialSwitchData};
-      this.webSocketService.emit('initial', initialData);
+      socket.emit('initial', initialData);
     });
   }
 
