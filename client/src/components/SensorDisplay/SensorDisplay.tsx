@@ -9,23 +9,23 @@ type SensorDisplayProps = {
 }
 
 const SensorDisplay: React.FC<SensorDisplayProps> = ({environmentSensors}) => {
-  // const [sensorData, setSensorData] = useState<SensorData[]>(
-  //     environmentSensors.map(() => ({temperature: " - ", humidity: " - "}))
-  // );
+
+  function formatSensor(sensor: EnvironmentSensorDto) {
+    return <>{sensor.temperature !== undefined ? sensor.temperature.toFixed(1) : '-'}°C
+      / {sensor.humidity !== undefined ? sensor.humidity.toFixed(1) : '-'}% {sensor.name}</>;
+  }
 
   return (
       <CoveCard title="Sensors">
         <Stack direction="column" spacing={2}>
           {environmentSensors.map((sensor) => (
               <div key={sensor.id}>
-                {/*<Typography variant="body1">*/}
-                  <Box display="flex" alignItems="center" mb={2}>
-                    <DeviceThermostatIcon color="primary" />
-                    <Box mr={2}>
-                      {sensor.temperature}°C / {sensor.humidity}% {sensor.name}
-                    </Box>
+                <Box display="flex" alignItems="center" mb={2}>
+                  <DeviceThermostatIcon color="primary"/>
+                  <Box mr={2}>
+                    {formatSensor(sensor)}
                   </Box>
-                {/*</Typography>*/}
+                </Box>
               </div>
           ))}
         </Stack>
