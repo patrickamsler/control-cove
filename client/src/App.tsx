@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 import LightControl from './components/LightControl/LightControl';
-import { CssBaseline, Box, Grid } from '@mui/material';
+import { Box, CssBaseline, Grid } from '@mui/material';
 import SensorDisplay from './components/SensorDisplay/SensorDisplay';
-import io, { Socket } from 'socket.io-client';
-import { SensorDataDto } from "./dto/SensorDataDto";
+import io from 'socket.io-client';
+import { EnvironmentSensorDto } from "./dto/EnvironmentSensorDto";
+import { SwitchDto } from "./dto/SwitchDto";
+import { SwitchEvent } from "./dto/SwitchEvent";
+import { EnvironmentSensorEvent } from "./dto/EnvironmentSensorEvent";
 
 const theme = createTheme({
   palette: {
@@ -17,7 +20,8 @@ const App = () => {
   if (!serverUrl) {
     throw new Error('REACT_APP_SERVER_URL is not set');
   }
-  const [configData, setConfigData] = useState<null | SensorDataDto>(null);
+  const [environmentSensors, setEnvironmentSensors] = useState<null | EnvironmentSensorDto[]>(null);
+  const [switches, setSwitches] = useState<null | SwitchDto[]>(null);
   const [error, setError] = useState<null | string>(null)
 
   useEffect(() => {
@@ -27,23 +31,55 @@ const App = () => {
           setError(`HTTP error! status: ${response.status}`);
         }
         const result = await response.json();
-        setConfigData(result);
+        setEnvironmentSensors(result.environmentSensors);
+        setSwitches(result.switches);
       }
 
       fetchData();
   }, []);
 
+  const updateSwitches = (message: SwitchEvent) => {
+    setSwitches((prevSwitches) => {
+      if (!prevSwitches) {
+        return prevSwitches;
+      }
+      return prevSwitches.map((sw) => {
+        if (sw.id === message.id) {
+          return {...sw, state: message.data.state};
+        }
+        return sw;
+      });
+    });
+  }
+
+  const updateSensorData = (message: EnvironmentSensorEvent) => {
+    setEnvironmentSensors((prevSensors) => {
+      if (!prevSensors) {
+        return prevSensors;
+      }
+      return prevSensors.map((sensor) => {
+        if (sensor.id === message.id) {
+          return {...sensor, temperature: message.data.temperature, humidity: message.data.humidity};
+        }
+        return sensor;
+      });
+    });
+  }
+
   useEffect(() => {
     const socket = io(serverUrl);
-    socket.on('initial', (message: any) => {
-      console.log(JSON.stringify(message, null, 2));
+    socket.on('switch', (message: SwitchEvent) => {
+      updateSwitches(message);
+    });
+    socket.on('sensor', (message: EnvironmentSensorEvent) => {
+      updateSensorData(message);
     });
   }, []);
 
   if (error) {
     return <div>Error: {error}</div>;
   }
-  if (!configData) {
+  if (!switches || !environmentSensors) {
     return <div>Loading...</div>;
   }
 
@@ -54,12 +90,12 @@ const App = () => {
           <Grid container spacing={2}>
             <Grid item xs={6}>
               <LightControl
-                  switches={configData.switches}
+                  switches={switches}
               />
             </Grid>
             <Grid item xs={6}>
               <SensorDisplay
-                  environmentSensors={configData.environmentSensors}
+                  environmentSensors={environmentSensors}
               />
             </Grid>
           </Grid>

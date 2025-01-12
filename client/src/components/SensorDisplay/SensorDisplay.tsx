@@ -4,34 +4,14 @@ import { Box, Stack, Typography } from "@mui/material";
 import DeviceThermostatIcon from '@mui/icons-material/DeviceThermostat';
 import { EnvironmentSensorDto } from "../../dto/EnvironmentSensorDto";
 
-type SensorData = {
-  temperature: string;
-  humidity: string;
-}
-
 type SensorDisplayProps = {
   environmentSensors : EnvironmentSensorDto[];
 }
 
 const SensorDisplay: React.FC<SensorDisplayProps> = ({environmentSensors}) => {
-  const [sensorData, setSensorData] = useState<SensorData[]>(
-      environmentSensors.map(() => ({temperature: " - ", humidity: " - "}))
-  );
-
-  // useEffect(() => {
-  //   sensorConfig.forEach((sensor, index) => {
-  //     subscribeToTopic(sensor.statusTopic, (message) => {
-  //       const data = JSON.parse(message);
-  //       data.humidity = data.humidity.toFixed(1);
-  //       data.temperature = data.temperature.toFixed(1);
-  //       setSensorData((prevData) => {
-  //         const newData = [...prevData];
-  //         newData[index] = data;
-  //         return newData;
-  //       });
-  //     });
-  //   });
-  // }, []);
+  // const [sensorData, setSensorData] = useState<SensorData[]>(
+  //     environmentSensors.map(() => ({temperature: " - ", humidity: " - "}))
+  // );
 
   return (
       <CoveCard title="Sensors">
