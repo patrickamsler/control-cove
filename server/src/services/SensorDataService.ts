@@ -3,13 +3,13 @@ import sensorConfig from '../config/sensor-config.json';
 import switchConfig from '../config/light-config.json';
 import { WebSocketService } from "./WebSocketService";
 
-interface SensorData {
+export interface SensorData {
   device_id: String
   humidity: number
   temperature: number
 }
 
-interface SwitchData {
+export interface SwitchData {
   device_id: String
   state: boolean
 }
@@ -23,6 +23,14 @@ export class SensorDataService {
       private mqttService: MqttService,
       private webSocketService: WebSocketService
   ) {}
+
+  public getSensorData(id: number): SensorData | undefined {
+    return this.sensorDataStorage.get(id);
+  }
+
+  public getSwitchData(id: number): SwitchData | undefined {
+    return this.switchDataStorage.get(id);
+  }
 
   private updateSensorData(sensorId: number, data: SensorData): void {
     this.sensorDataStorage.set(sensorId, data);

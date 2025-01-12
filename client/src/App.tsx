@@ -3,8 +3,8 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import LightControl from './components/LightControl/LightControl';
 import { CssBaseline, Box, Grid } from '@mui/material';
 import SensorDisplay from './components/SensorDisplay/SensorDisplay';
-import { ConfigDto } from "./dto/ConfigDto";
 import io, { Socket } from 'socket.io-client';
+import { SensorDataDto } from "./dto/SensorDataDto";
 
 const theme = createTheme({
   palette: {
@@ -17,12 +17,12 @@ const App = () => {
   if (!serverUrl) {
     throw new Error('REACT_APP_SERVER_URL is not set');
   }
-  const [configData, setConfigData] = useState<null | ConfigDto>(null);
+  const [configData, setConfigData] = useState<null | SensorDataDto>(null);
   const [error, setError] = useState<null | string>(null)
 
   useEffect(() => {
     const fetchData = async () => {
-        const response = await fetch(`${serverUrl}/api/config`);
+        const response = await fetch(`${serverUrl}/api/sensors`);
         if (!response.ok) {
           setError(`HTTP error! status: ${response.status}`);
         }
@@ -54,12 +54,12 @@ const App = () => {
           <Grid container spacing={2}>
             <Grid item xs={6}>
               <LightControl
-                  switchConfigs={configData.switches}
+                  switches={configData.switches}
               />
             </Grid>
             <Grid item xs={6}>
               <SensorDisplay
-                  sensorConfigs={configData.sensors}
+                  environmentSensors={configData.environmentSensors}
               />
             </Grid>
           </Grid>

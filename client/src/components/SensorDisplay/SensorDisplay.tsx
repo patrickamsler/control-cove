@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import CoveCard from "../CoveCard/CoveCard";
 import { Box, Stack, Typography } from "@mui/material";
 import DeviceThermostatIcon from '@mui/icons-material/DeviceThermostat';
-import { SensorConfigDto } from "../../dto/SensorConfigDto";
+import { EnvironmentSensorDto } from "../../dto/EnvironmentSensorDto";
 
 type SensorData = {
   temperature: string;
@@ -10,12 +10,12 @@ type SensorData = {
 }
 
 type SensorDisplayProps = {
-  sensorConfigs: SensorConfigDto[];
+  environmentSensors : EnvironmentSensorDto[];
 }
 
-const SensorDisplay: React.FC<SensorDisplayProps> = ({sensorConfigs}) => {
+const SensorDisplay: React.FC<SensorDisplayProps> = ({environmentSensors}) => {
   const [sensorData, setSensorData] = useState<SensorData[]>(
-      sensorConfigs.map(() => ({temperature: " - ", humidity: " - "}))
+      environmentSensors.map(() => ({temperature: " - ", humidity: " - "}))
   );
 
   // useEffect(() => {
@@ -36,14 +36,13 @@ const SensorDisplay: React.FC<SensorDisplayProps> = ({sensorConfigs}) => {
   return (
       <CoveCard title="Sensors">
         <Stack direction="column" spacing={2}>
-          {sensorConfigs.map((sensor) => (
+          {environmentSensors.map((sensor) => (
               <div key={sensor.id}>
                 {/*<Typography variant="body1">*/}
                   <Box display="flex" alignItems="center" mb={2}>
                     <DeviceThermostatIcon color="primary" />
                     <Box mr={2}>
-                      {/*sensorData[index].temperature}°C / {sensorData[index].humidity}% sensor.name*/}
-                      {sensor.name}
+                      {sensor.temperature}°C / {sensor.humidity}% {sensor.name}
                     </Box>
                   </Box>
                 {/*</Typography>*/}

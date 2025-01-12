@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { FormControlLabel, Switch, Stack } from '@mui/material';
 import CoveCard from "../CoveCard/CoveCard";
-import { SwitchConfigDto } from "../../dto/SwitchConfigDto";
+import { SwitchDto } from "../../dto/SwitchDto";
 
 
 interface LightControlProps {
-  switchConfigs: SwitchConfigDto[];
+  switches: SwitchDto[];
 }
 
-const LightControl: React.FC<LightControlProps> = ({ switchConfigs }) => {
+const LightControl: React.FC<LightControlProps> = ({ switches }) => {
   const [switchStates, setSwitchStates] = useState(
-      switchConfigs.map(() => false)
+      switches.map(() => false)
   );
 
   // useEffect(() => {
@@ -51,17 +51,17 @@ const LightControl: React.FC<LightControlProps> = ({ switchConfigs }) => {
   return (
       <CoveCard title={'Light'}>
           <Stack direction="column" spacing={2}>
-            {switchConfigs.map((switchConfig) => (
+            {switches.map((sw) => (
                 <FormControlLabel
                     control={
                       <Switch
-                          checked={false}
-                          onChange={(event) => handleSwitchChange(event, switchConfig.id)}
-                          name={`Switch ${switchConfig.id}`}
+                          checked={sw.state}
+                          onChange={(event) => handleSwitchChange(event, sw.id)}
+                          name={`Switch ${sw.id}`}
                       />
                     }
-                    label={switchConfig.name}
-                    key={switchConfig.id}
+                    label={sw.name}
+                    key={sw.id}
                 />
             ))}
           </Stack>

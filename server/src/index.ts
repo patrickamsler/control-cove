@@ -1,26 +1,29 @@
-import express from 'express';
+import express, { Router } from 'express';
 import bodyParser from 'body-parser';
 import { createServer } from 'http';
 import { MqttService } from './services/MqttService';
 import { SensorDataService } from './services/SensorDataService';
 import * as dotenv from 'dotenv';
-import configRoutes from "./routes/ConfigRoutes";
 import { WebSocketService } from "./services/WebSocketService";
 import { ActorService } from "./services/ActorService";
+import { SensorDataController } from './controllers/SensorDataController';
 
 const result = dotenv.config();
 console.log('Environment variables loaded:', result.parsed);
 
-const API_ROOT = '/api';
 const app = express();
-app.use(bodyParser.json());
-app.use(API_ROOT, configRoutes);
-
 const httpServer = createServer(app);
 const mqttService = new MqttService();
 const webSocketService = new WebSocketService(httpServer);
 const sensorDataService = new SensorDataService(mqttService, webSocketService);
 const actorService = new ActorService(mqttService, webSocketService);
+const sensorDataController = new SensorDataController(sensorDataService);
+
+const API_ROOT = '/api';
+const router = Router();
+router.get("/sensors", sensorDataController.getSensorData);
+app.use(API_ROOT, router);
+app.use(bodyParser.json());
 
 const HTTP_PORT = process.env.HTTP_PORT;
 httpServer.listen(HTTP_PORT, () => {
