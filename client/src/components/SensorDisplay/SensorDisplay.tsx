@@ -15,7 +15,7 @@ type SensorDisplayProps = {
 
 const SensorDisplay: React.FC<SensorDisplayProps> = ({sensorConfigs}) => {
   const [sensorData, setSensorData] = useState<SensorData[]>(
-      sensorConfigs.map(() => ({ temperature: " - ", humidity: " - " }))
+      sensorConfigs.map(() => ({temperature: " - ", humidity: " - "}))
   );
 
   // useEffect(() => {

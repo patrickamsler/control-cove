@@ -4,6 +4,7 @@ import LightControl from './components/LightControl/LightControl';
 import { CssBaseline, Box, Grid } from '@mui/material';
 import SensorDisplay from './components/SensorDisplay/SensorDisplay';
 import { ConfigDto } from "./dto/ConfigDto";
+import io, { Socket } from 'socket.io-client';
 
 const theme = createTheme({
   palette: {
@@ -12,12 +13,16 @@ const theme = createTheme({
 });
 
 const App = () => {
+  const serverUrl = process.env.REACT_APP_SERVER_URL;
+  if (!serverUrl) {
+    throw new Error('REACT_APP_SERVER_URL is not set');
+  }
   const [configData, setConfigData] = useState<null | ConfigDto>(null);
   const [error, setError] = useState<null | string>(null)
 
   useEffect(() => {
     const fetchData = async () => {
-        const response = await fetch(`${process.env.REACT_APP_SERVER_URL}/api/config`);
+        const response = await fetch(`${serverUrl}/api/config`);
         if (!response.ok) {
           setError(`HTTP error! status: ${response.status}`);
         }
@@ -26,6 +31,13 @@ const App = () => {
       }
 
       fetchData();
+  }, []);
+
+  useEffect(() => {
+    const socket = io(serverUrl);
+    socket.on('initial', (message: any) => {
+      console.log(JSON.stringify(message, null, 2));
+    });
   }, []);
 
   if (error) {
