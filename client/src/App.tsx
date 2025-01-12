@@ -27,17 +27,22 @@ const App = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      try {
         const response = await fetch(`${serverUrl}/api/sensors`);
         if (!response.ok) {
           setError(`HTTP error! status: ${response.status}`);
+          return;
         }
         const result = await response.json();
         setEnvironmentSensors(result.environmentSensors);
         setSwitches(result.switches);
+      } catch (error: any) {
+        setError(`Fetch error: ${error.message}`);
       }
+    };
 
-      fetchData();
-  }, []);
+    fetchData();
+  }, [serverUrl]);
 
   useEffect(() => {
     const socket = io(serverUrl);
