@@ -27,7 +27,7 @@ httpServer.listen(HTTP_PORT, () => {
   console.log(`[Server] Listening on port ${HTTP_PORT}`);
 });
 mqttClientService.connectToBroker(() => {
-  console.log('Registering MQTT topics');
+  console.log('Registering MQTT topics and WebSocket events');
   sensorDataService.registerMqttTopics();
   sensorDataService.registerWebsocketEvents();
   actorService.registerWebsocketEvents();
