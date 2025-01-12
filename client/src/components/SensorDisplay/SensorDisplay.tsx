@@ -38,7 +38,7 @@ const SensorDisplay: React.FC<SensorDisplayProps> = ({sensorConfigs}) => {
         <Stack direction="column" spacing={2}>
           {sensorConfigs.map((sensor) => (
               <div key={sensor.id}>
-                <Typography variant="body1">
+                {/*<Typography variant="body1">*/}
                   <Box display="flex" alignItems="center" mb={2}>
                     <DeviceThermostatIcon color="primary" />
                     <Box mr={2}>
@@ -46,7 +46,7 @@ const SensorDisplay: React.FC<SensorDisplayProps> = ({sensorConfigs}) => {
                       {sensor.name}
                     </Box>
                   </Box>
-                </Typography>
+                {/*</Typography>*/}
               </div>
           ))}
         </Stack>
