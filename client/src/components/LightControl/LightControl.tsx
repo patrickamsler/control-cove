@@ -6,9 +6,10 @@ import { SwitchDto } from "../../dto/SwitchDto";
 
 interface LightControlProps {
   switches: SwitchDto[];
+  actionHandler: (id: number, state: boolean) => void;
 }
 
-const LightControl: React.FC<LightControlProps> = ({ switches }) => {
+const LightControl: React.FC<LightControlProps> = ({ switches, actionHandler }) => {
   return (
       <CoveCard title={'Light'}>
           <Stack direction="column" spacing={2}>
@@ -17,7 +18,7 @@ const LightControl: React.FC<LightControlProps> = ({ switches }) => {
                     control={
                       <Switch
                           checked={sw.state}
-                          // onChange={(event) => handleSwitchChange(event, sw.id)}
+                          onChange={(event) => actionHandler(sw.id, event.target.checked)}
                           name={`Switch ${sw.id}`}
                       />
                     }

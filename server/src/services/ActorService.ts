@@ -15,7 +15,7 @@ export class ActorService {
   ) {}
 
   public registerWebsocketEvents(): void {
-    this.webSocketService.onEvent('switch', (data: SwitchData) => {
+    this.webSocketService.onEvent('updateSwitch', (data: SwitchData) => {
       console.log('Received switch event', data);
       this.emitSwitchMessage(data.id, data.state);
     })

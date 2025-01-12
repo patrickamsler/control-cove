@@ -2,7 +2,7 @@ import { Server as SocketIOServer } from 'socket.io';
 import { Server as HttpServer } from 'http';
 
 export type EmitEvent = 'switch' | 'sensor' | 'initial';
-export type ReceiveEvent = 'switch';
+export type ReceiveEvent = 'updateSwitch';
 
 export class WebSocketService {
 
