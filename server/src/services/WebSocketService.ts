@@ -14,6 +14,12 @@ export class WebSocketService {
         origin: "*"
       }
     });
+    this.io.on('connection', (socket) => {
+      console.log(`A client connected with ID: ${socket.id}`);
+      socket.on('disconnect', () => {
+        console.log(`Client disconnected: ${socket.id}`);
+      });
+    });
   }
 
   onConnection(callback: (socket: any) => void) {
