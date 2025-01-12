@@ -3,7 +3,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import LightControl from './components/LightControl/LightControl';
 import { CssBaseline, Box, Grid } from '@mui/material';
 import SensorDisplay from './components/SensorDisplay/SensorDisplay';
-import { connectToBroker, disconnectFromBroker } from "./services/mqttClient";
+import { ConfigDto } from "./dto/ConfigDto";
 
 const theme = createTheme({
   palette: {
@@ -12,21 +12,27 @@ const theme = createTheme({
 });
 
 const App = () => {
-
-  const [isConnected, setIsConnected] = useState(false);
+  const [configData, setConfigData] = useState<null | ConfigDto>(null);
+  const [error, setError] = useState<null | string>(null)
 
   useEffect(() => {
-    connectToBroker(() => {
-      setIsConnected(true);
-    });
-    return () => {
-      disconnectFromBroker();
-      setIsConnected(false);
-    };
+    const fetchData = async () => {
+        const response = await fetch(`${process.env.REACT_APP_SERVER_URL}/api/config`);
+        if (!response.ok) {
+          setError(`HTTP error! status: ${response.status}`);
+        }
+        const result = await response.json();
+        setConfigData(result);
+      }
+
+      fetchData();
   }, []);
 
-  if (!isConnected) {
-    return <div>Connecting to MQTT broker...</div>;
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+  if (!configData) {
+    return <div>Loading...</div>;
   }
 
   return (
@@ -35,10 +41,14 @@ const App = () => {
         <Box padding={2}>
           <Grid container spacing={2}>
             <Grid item xs={6}>
-              <LightControl/>
+              <LightControl
+                  switchConfigs={configData.switches}
+              />
             </Grid>
             <Grid item xs={6}>
-              <SensorDisplay/>
+              <SensorDisplay
+                  sensorConfigs={configData.sensors}
+              />
             </Grid>
           </Grid>
         </Box>

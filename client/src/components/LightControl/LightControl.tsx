@@ -1,64 +1,67 @@
 import React, { useEffect, useState } from 'react';
 import { FormControlLabel, Switch, Stack } from '@mui/material';
-import { publishMessage, subscribeToTopic, unsubscribeFromTopic } from "../../services/mqttClient";
-import lightConfig from "../../config/light-config.json";
 import CoveCard from "../CoveCard/CoveCard";
+import { SwitchConfigDto } from "../../dto/SwitchConfigDto";
 
 
-const LightControl = () => {
+interface LightControlProps {
+  switchConfigs: SwitchConfigDto[];
+}
+
+const LightControl: React.FC<LightControlProps> = ({ switchConfigs }) => {
   const [switchStates, setSwitchStates] = useState(
-      lightConfig.map(() => false)
+      switchConfigs.map(() => false)
   );
 
-  useEffect(() => {
-      subscribeToTopics();
-    return () => {
-      unsubscribeFromTopics();
-    };
-  }, []);
+  // useEffect(() => {
+  //     subscribeToTopics();
+  //   return () => {
+  //     unsubscribeFromTopics();
+  //   };
+  // }, []);
+  //
+  // const subscribeToTopics = () => {
+  //   lightConfig.forEach((light, index) => {
+  //     subscribeToTopic(light.stateTopic, (message) => {
+  //       setSwitchStates((prevStates) => {
+  //         const newStates = [...prevStates];
+  //         newStates[index] = message === 'on';
+  //         return newStates;
+  //       });
+  //     });
+  //   });
+  // }
+  //
+  // const unsubscribeFromTopics = () => {
+  //   lightConfig.forEach((light) => {
+  //     unsubscribeFromTopic(light.stateTopic);
+  //   });
+  // }
 
-  const subscribeToTopics = () => {
-    lightConfig.forEach((light, index) => {
-      subscribeToTopic(light.stateTopic, (message) => {
-        setSwitchStates((prevStates) => {
-          const newStates = [...prevStates];
-          newStates[index] = message === 'on';
-          return newStates;
-        });
-      });
-    });
-  }
-
-  const unsubscribeFromTopics = () => {
-    lightConfig.forEach((light) => {
-      unsubscribeFromTopic(light.stateTopic);
-    });
-  }
-
-  const handleSwitchChange = (event: React.ChangeEvent<HTMLInputElement>, index: number, commandTopic: string) => {
-    const switchState = event.target.checked;
-    setSwitchStates((prevStates) => {
-      const newStates = [...prevStates];
-      newStates[index] = switchState;
-      return newStates;
-    });
-    publishMessage(commandTopic, switchState ? 'on' : 'off');
+  const handleSwitchChange = (event: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    // const switchState = event.target.checked;
+    // setSwitchStates((prevStates) => {
+    //   const newStates = [...prevStates];
+    //   newStates[index] = switchState;
+    //   return newStates;
+    // });
+    // publishMessage(commandTopic, switchState ? 'on' : 'off');
   };
 
   return (
       <CoveCard title={'Light'}>
           <Stack direction="column" spacing={2}>
-            {lightConfig.map((light, index) => (
+            {switchConfigs.map((switchConfig) => (
                 <FormControlLabel
                     control={
                       <Switch
-                          checked={switchStates[index]}
-                          onChange={(event) => handleSwitchChange(event, index, light.commandTopic)}
-                          name={`Switch ${index + 1}`}
+                          checked={false}
+                          onChange={(event) => handleSwitchChange(event, switchConfig.id)}
+                          name={`Switch ${switchConfig.id}`}
                       />
                     }
-                    label={light.name}
-                    key={index}
+                    label={switchConfig.name}
+                    key={switchConfig.id}
                 />
             ))}
           </Stack>
