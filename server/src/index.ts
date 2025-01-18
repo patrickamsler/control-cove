@@ -7,9 +7,10 @@ import * as dotenv from 'dotenv';
 import { WebSocketService } from "./services/WebSocketService";
 import { ActorService } from "./services/ActorService";
 import { SensorDataController } from './controllers/SensorDataController';
+import logger from "./logger";
 
 const result = dotenv.config();
-console.log('Environment variables loaded:', result.parsed);
+logger.info('Environment variables loaded:', result.parsed);
 
 const app = express();
 const httpServer = createServer(app);
@@ -27,10 +28,10 @@ app.use(bodyParser.json());
 
 const HTTP_PORT = process.env.HTTP_PORT;
 httpServer.listen(HTTP_PORT, () => {
-  console.log(`[Server] Listening on port ${HTTP_PORT}`);
+  logger.info(`[Server] Listening on port ${HTTP_PORT}`);
 });
 mqttService.connectToBroker(() => {
-  console.log('Registering MQTT topics and WebSocket events');
+  logger.info('Registering MQTT topics and WebSocket events');
   sensorDataService.registerMqttTopics();
   sensorDataService.registerWebsocketEvents();
   actorService.registerWebsocketEvents();

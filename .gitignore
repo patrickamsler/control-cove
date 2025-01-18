@@ -39,3 +39,5 @@ client/src/config/broker-config.json
 
 .idea
 *.iml
+
+/server/logs

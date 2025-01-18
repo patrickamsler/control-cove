@@ -1,5 +1,6 @@
 import { Server as SocketIOServer } from 'socket.io';
 import { Server as HttpServer } from 'http';
+import logger from "../logger";
 
 export type EmitEvent = 'switch' | 'sensor' | 'initial';
 export type ReceiveEvent = 'updateSwitch';
@@ -15,9 +16,9 @@ export class WebSocketService {
       }
     });
     this.io.on('connection', (socket) => {
-      console.log(`A client connected with ID: ${socket.id}`);
+      logger.info(`A client connected with ID: ${socket.id}`);
       socket.on('disconnect', () => {
-        console.log(`Client disconnected: ${socket.id}`);
+        logger.info(`Client disconnected: ${socket.id}`);
       });
     });
   }

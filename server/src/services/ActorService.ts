@@ -1,6 +1,7 @@
 import { MqttService } from "./MqttService";
 import { WebSocketService } from "./WebSocketService";
 import switchConfig from "../config/light-config.json";
+import logger from '../logger';
 
 interface SwitchData {
   id: number
@@ -16,7 +17,7 @@ export class ActorService {
 
   public registerWebsocketEvents(): void {
     this.webSocketService.onEvent('updateSwitch', (data: SwitchData) => {
-      console.log('Received switch event', data);
+      logger.info('Received switch event', data);
       this.emitSwitchMessage(data.id, data.state);
     })
   }

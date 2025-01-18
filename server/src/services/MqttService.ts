@@ -1,4 +1,5 @@
 import mqtt, { MqttClient } from 'mqtt';
+import logger from '../logger';
 
 export class MqttService {
 
@@ -18,22 +19,22 @@ export class MqttService {
         const url = process.env.MQTT_URL as string;
         this.client = mqtt.connect(url, options);
         this.client.on('connect', () => {
-          console.log('connected to MQTT broker')
+          logger.info('connected to MQTT broker')
           if (onConnect) {
             onConnect();
           }
         });
         this.client.on('message', (topic, message) => {
           if (this.listeners[topic]) {
-            console.log(`Received message on topic ${topic}: ${message.toString()}`);
+            logger.info(`Received message on topic ${topic}: ${message.toString()}`);
             this.listeners[topic](message.toString());
           }
         });
         this.client.on('error', (error) => {
-          console.error(`MQTT connection error: ${error}`);
+          logger.error(`MQTT connection error: ${error}`);
         });
       } catch (error) {
-        console.error(`Failed to connect to MQTT broker: ${error}`);
+        logger.error(`Failed to connect to MQTT broker: ${error}`);
       }
     }
   };
@@ -46,19 +47,19 @@ export class MqttService {
 
   publishMessage = (topic: string, message: string) => {
     if (this.client && this.client.connected) {
-      console.log(`Publishing message to topic ${topic}: ${message}`);
+      logger.info(`Publishing message to topic ${topic}: ${message}`);
       this.client.publish(topic, message);
     }
   }
 
   subscribeToTopic = (topic: string, onMessage: (message: string) => void) => {
     if (this.client && this.client.connected) {
-      console.log(`Subscribing to topic ${topic} ${Object.keys(this.listeners).length}`);
+      logger.info(`Subscribing to topic ${topic} ${Object.keys(this.listeners).length}`);
       this.client.subscribe(topic, (err) => {
         if (err) {
           console.error(`Failed to subscribe to topic ${topic}: ${err}`);
         } else {
-          console.log(`Successfully subscribed to topic ${topic}`);
+          logger.info(`Successfully subscribed to topic ${topic}`);
           this.listeners[topic] = onMessage; // only store the latest listener
         }
       });
@@ -71,7 +72,7 @@ export class MqttService {
         if (err) {
           console.error(`Failed to unsubscribe from topic ${topic}: ${err}`);
         } else {
-          console.log(`Successfully unsubscribed from topic ${topic}`);
+          logger.info(`Successfully unsubscribed from topic ${topic}`);
         }
       });
       delete this.listeners[topic]; // remove the listener
