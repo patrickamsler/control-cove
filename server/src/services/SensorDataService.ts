@@ -2,17 +2,38 @@ import { MqttService } from "./MqttService";
 import sensorConfig from '../config/sensor-config.json';
 import switchConfig from '../config/light-config.json';
 import { WebSocketService } from "./WebSocketService";
+import logger from '../logger';
 
 export interface SensorData {
-  device_id: String
+  device_id: string
   humidity: number
   temperature: number
 }
 
 export interface SwitchData {
-  device_id: String
+  device_id: string
   state: boolean
 }
+
+const parseSensorPayload = (topic: string, message: string): SensorData | undefined => {
+  let payload: unknown;
+  try {
+    payload = JSON.parse(message);
+  } catch (error) {
+    logger.error(`Ignoring malformed JSON on topic ${topic}: ${message}`);
+    return undefined;
+  }
+  if (typeof payload !== 'object' || payload === null) {
+    logger.error(`Ignoring non-object payload on topic ${topic}: ${message}`);
+    return undefined;
+  }
+  const { device_id, temperature, humidity } = payload as Record<string, unknown>;
+  if (typeof temperature !== 'number' || typeof humidity !== 'number') {
+    logger.error(`Ignoring payload without numeric temperature/humidity on topic ${topic}: ${message}`);
+    return undefined;
+  }
+  return { device_id: typeof device_id === 'string' ? device_id : topic, temperature, humidity };
+};
 
 export class SensorDataService {
 
@@ -54,8 +75,10 @@ export class SensorDataService {
   public registerMqttTopics(): void {
     sensorConfig.forEach((sensor) => {
       this.mqttService.subscribeToTopic(sensor.statusTopic, (message) => {
-        const data = JSON.parse(message);
-        this.updateSensorData(sensor.id, data);
+        const data = parseSensorPayload(sensor.statusTopic, message);
+        if (data) {
+          this.updateSensorData(sensor.id, data);
+        }
       });
     });
     switchConfig.forEach((light) => {

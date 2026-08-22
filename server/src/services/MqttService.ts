@@ -5,6 +5,7 @@ export class MqttService {
 
   private client?: MqttClient;
   private listeners: { [topic: string]: (message: string) => void } = {};
+  private connectedBefore = false;
 
   connectToBroker = (onConnect?: () => void) => {
     if (!this.client) {
@@ -20,6 +21,11 @@ export class MqttService {
         this.client = mqtt.connect(url, options);
         this.client.on('connect', () => {
           logger.info('connected to MQTT broker')
+          if (this.connectedBefore) {
+            this.resubscribeAll();
+            return;
+          }
+          this.connectedBefore = true;
           if (onConnect) {
             onConnect();
           }
@@ -46,36 +52,60 @@ export class MqttService {
   };
 
   publishMessage = (topic: string, message: string) => {
-    if (this.client && this.client.connected) {
-      logger.info(`Publishing message to topic ${topic}: ${message}`);
-      this.client.publish(topic, message);
+    if (!this.client) {
+      logger.error(`Cannot publish to topic ${topic}: MQTT client is not initialized`);
+      return;
     }
+    logger.info(`Publishing message to topic ${topic}: ${message}`);
+    // The client buffers the message while offline and flushes it on reconnect.
+    this.client.publish(topic, message, (err) => {
+      if (err) {
+        logger.error(`Failed to publish to topic ${topic}: ${err}`);
+      }
+    });
   }
 
   subscribeToTopic = (topic: string, onMessage: (message: string) => void) => {
-    if (this.client && this.client.connected) {
-      logger.info(`Subscribing to topic ${topic} ${Object.keys(this.listeners).length}`);
-      this.client.subscribe(topic, (err) => {
-        if (err) {
-          console.error(`Failed to subscribe to topic ${topic}: ${err}`);
-        } else {
-          logger.info(`Successfully subscribed to topic ${topic}`);
-          this.listeners[topic] = onMessage; // only store the latest listener
-        }
-      });
+    if (!this.client) {
+      logger.error(`Cannot subscribe to topic ${topic}: MQTT client is not initialized`);
+      return;
     }
+    this.listeners[topic] = onMessage; // only store the latest listener
+    this.subscribe(topic);
   }
 
   unsubscribeFromTopic = (topic: string) => {
-    if (this.client && this.client.connected) {
-      this.client.unsubscribe(topic, (err) => {
-        if (err) {
-          console.error(`Failed to unsubscribe from topic ${topic}: ${err}`);
-        } else {
-          logger.info(`Successfully unsubscribed from topic ${topic}`);
-        }
-      });
-      delete this.listeners[topic]; // remove the listener
+    delete this.listeners[topic]; // remove the listener
+    if (!this.client) {
+      return;
     }
+    this.client.unsubscribe(topic, (err) => {
+      if (err) {
+        logger.error(`Failed to unsubscribe from topic ${topic}: ${err}`);
+      } else {
+        logger.info(`Successfully unsubscribed from topic ${topic}`);
+      }
+    });
+  }
+
+  private subscribe = (topic: string) => {
+    logger.info(`Subscribing to topic ${topic} ${Object.keys(this.listeners).length}`);
+    this.client!.subscribe(topic, (err) => {
+      if (err) {
+        logger.error(`Failed to subscribe to topic ${topic}: ${err}`);
+      } else {
+        logger.info(`Successfully subscribed to topic ${topic}`);
+      }
+    });
+  }
+
+  // Subscriptions are lost on reconnect (clean session), so restore them.
+  private resubscribeAll = () => {
+    const topics = Object.keys(this.listeners);
+    if (topics.length === 0) {
+      return;
+    }
+    logger.info(`Restoring ${topics.length} subscription(s) after reconnect`);
+    topics.forEach((topic) => this.subscribe(topic));
   }
 }
