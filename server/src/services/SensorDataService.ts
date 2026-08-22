@@ -1,6 +1,5 @@
 import { MqttService } from "./MqttService";
-import sensorConfig from '../config/sensor-config.json';
-import switchConfig from '../config/light-config.json';
+import { sensors, switches } from '../config/devices';
 import { WebSocketService } from "./WebSocketService";
 import logger from '../logger';
 
@@ -73,7 +72,7 @@ export class SensorDataService {
   }
 
   public registerMqttTopics(): void {
-    sensorConfig.forEach((sensor) => {
+    sensors.forEach((sensor) => {
       this.mqttService.subscribeToTopic(sensor.statusTopic, (message) => {
         const data = parseSensorPayload(sensor.statusTopic, message);
         if (data) {
@@ -81,12 +80,12 @@ export class SensorDataService {
         }
       });
     });
-    switchConfig.forEach((light) => {
-      this.mqttService.subscribeToTopic(light.stateTopic, (message) => {
-        const device_id = light.stateTopic.split('/')[1];
+    switches.forEach((switchConfig) => {
+      this.mqttService.subscribeToTopic(switchConfig.stateTopic, (message) => {
+        const device_id = switchConfig.stateTopic.split('/')[1];
         const state = message == 'on';
         const data = {device_id, state};
-        this.updateSwitchData(light.id, data);
+        this.updateSwitchData(switchConfig.id, data);
       });
     })
   }

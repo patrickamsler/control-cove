@@ -50,8 +50,12 @@ Devices are configured, not discovered. Edit:
 
 - `server/src/config/sensor-config.json` — `id`, `name`, `statusTopic`
   (payload: JSON with numeric `temperature` / `humidity`)
-- `server/src/config/light-config.json` — `id`, `name`, `commandTopic`, `stateTopic`
+- `server/src/config/switch-config.json` — `id`, `name`, `commandTopic`, `stateTopic`
   (payload: the plain strings `on` / `off`)
+
+Both files are loaded, validated (unique ids, non-empty topics), and exposed as typed
+`switches` / `sensors` arrays plus `findSwitchById` / `findSensorById` lookups by
+`server/src/config/devices.ts`. Consumers import from there instead of the JSON files.
 
 ## Setup
 
