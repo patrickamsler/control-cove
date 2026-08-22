@@ -1,0 +1,53 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Commands
+
+All commands run from the repo root unless noted.
+
+```bash
+npm run install:all      # install deps in both client/ and server/
+npm start                # concurrently: CRA dev server (client) + ts-node-dev (server)
+npm run start:client     # CRA only, port 3000
+npm run start:server     # server only (ts-node-dev --respawn --transpile-only)
+npm run build            # client CRA build + server tsc -> server/dist
+npm test                 # CRA/Jest tests in client/
+```
+
+Single test (from `client/`): `npm test -- -t "test name"` or `npm test -- App.test.tsx`.
+There are no tests or lint script in `server/`; type errors surface via `npm run build --prefix server`.
+
+Local MQTT broker for development: `docker compose -f docker/docker-compose.yaml up` (Mosquitto, 1883 MQTT / 9001 WebSocket).
+
+## Architecture
+
+Two-package monorepo (no workspaces — each of `client/` and `server/` has its own `package.json` and `tsconfig.json`).
+
+**The server is the only MQTT participant.** The browser never talks to the broker. Data flows:
+
+```
+MQTT broker <-> server/MqttService <-> SensorDataService / ActorService <-> WebSocketService (socket.io) <-> React App.tsx
+```
+
+Wiring happens in `server/src/index.ts`: services are constructed manually and injected by hand (no DI container). MQTT topic subscriptions and websocket handlers are registered only inside the `connectToBroker` callback, so nothing is wired until the first successful broker connection.
+
+- `MqttService` — single mqtt client, one listener per topic (later `subscribeToTopic` on the same topic replaces the previous listener). Sessions are clean, so it tracks `connectedBefore` and re-subscribes all stored topics on reconnect rather than re-running the `onConnect` wiring.
+- `SensorDataService` — subscribes to config-defined topics, keeps latest readings in in-memory `Map`s (nothing is persisted; state is empty after restart until devices publish), and emits `sensor` / `switch` events. On each new socket connection it emits `initial` with a snapshot of both maps.
+- `ActorService` — inbound direction only: listens for the `updateSwitch` socket event and publishes `on`/`off` to the switch's `commandTopic`.
+- `SensorDataController` — `GET /api/sensors`, builds the DTO shape from the JSON config files and overlays whatever live state exists.
+
+**Socket event contract** (typed in `WebSocketService`): emitted `switch` | `sensor` | `initial`; received `updateSwitch`. Changing these requires matching edits in `client/src/App.tsx`.
+
+**Devices are configured, not discovered.** `server/src/config/sensor-config.json` (id, name, statusTopic) and `light-config.json` (id, name, commandTopic, stateTopic) are imported directly as TS modules. Adding a device means editing these files; the numeric `id` is the key used across REST, websocket events and the storage maps. Switch state topics carry the plain strings `on`/`off`; sensor status topics carry JSON with numeric `temperature`/`humidity` (malformed payloads are logged and dropped in `parseSensorPayload`).
+
+**DTOs are duplicated**, not shared: `client/src/dto/` and `server/src/dto/` hold parallel copies. Keep them in sync manually when changing the API shape.
+
+## Configuration
+
+Env files are gitignored; `.env` and `.env.production` exist in both packages.
+
+- `server/.env`: `HTTP_PORT`, `MQTT_URL`, `MQTT_USERNAME`, `MQTT_PASSWORD`, `NODE_ENV`, `LOG_PATH`, optional `LOG_LEVEL`.
+- `client/.env`: `REACT_APP_SERVER_URL` — App.tsx throws at render if unset.
+
+`server/src/logger.ts` (winston) always writes daily-rotated files under `LOG_PATH`; console output is added only when `NODE_ENV=development`. Prefer `logger` over `console.log` in server code.
