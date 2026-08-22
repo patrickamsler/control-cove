@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
-import switchConfig from "../config/light-config.json";
-import sensorConfig from "../config/sensor-config.json";
+import { sensors, switches } from "../config/devices";
 import { SensorDataDto } from "../dto/SensorDataDto"
 import { SensorDataService } from "../services/SensorDataService";
 
@@ -32,8 +31,8 @@ export class SensorDataController {
 
   private createSensorDataDtoFromConfig(): SensorDataDto {
     return {
-      switches: switchConfig.map((config) => ({id: config.id, name: config.name})),
-      environmentSensors: sensorConfig.map((config) => ({id: config.id, name: config.name}))
+      switches: switches.map((config) => ({id: config.id, name: config.name})),
+      environmentSensors: sensors.map((config) => ({id: config.id, name: config.name}))
     };
   }
 }

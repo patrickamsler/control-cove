@@ -1,6 +1,6 @@
 import { MqttService } from "./MqttService";
 import { WebSocketService } from "./WebSocketService";
-import switchConfig from "../config/light-config.json";
+import { findSwitchById } from "../config/devices";
 import logger from '../logger';
 
 interface SwitchData {
@@ -23,7 +23,7 @@ export class ActorService {
   }
 
   private emitSwitchMessage = (switchId: number, state: boolean) => {
-    const switchData = switchConfig.find((config) => config.id === switchId);
+    const switchData = findSwitchById(switchId);
     if (switchData) {
       this.mqttService.publishMessage(switchData.commandTopic, state ? 'on' : 'off');
     }
