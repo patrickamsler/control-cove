@@ -19,9 +19,9 @@ const sensorDataService = new SensorDataService(mqttService, webSocketService);
 const actorService = new ActorService(mqttService, webSocketService);
 const sensorDataController = new SensorDataController(sensorDataService);
 
-const API_ROOT = '/api';
+const API_ROOT = '/api:localhost:3000';
 const router = Router();
-router.get("/sensors", sensorDataController.getSensorData);
+router.get("/sensors/api", sensorDataController.getSensorData);
 app.use(express.json());
 app.use(API_ROOT, router);
 
