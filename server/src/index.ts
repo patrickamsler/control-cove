@@ -1,5 +1,4 @@
 import express, { Router } from 'express';
-import bodyParser from 'body-parser';
 import { createServer } from 'http';
 import { MqttService } from './services/MqttService';
 import { SensorDataService } from './services/SensorDataService';
@@ -10,7 +9,7 @@ import { SensorDataController } from './controllers/SensorDataController';
 import logger from "./logger";
 
 const result = dotenv.config();
-logger.info('Environment variables loaded:', result.parsed);
+logger.info(`Environment variables loaded: ${Object.keys(result.parsed ?? {}).join(', ')}`);
 
 const app = express();
 const httpServer = createServer(app);
@@ -23,8 +22,8 @@ const sensorDataController = new SensorDataController(sensorDataService);
 const API_ROOT = '/api';
 const router = Router();
 router.get("/sensors", sensorDataController.getSensorData);
+app.use(express.json());
 app.use(API_ROOT, router);
-app.use(bodyParser.json());
 
 const HTTP_PORT = process.env.HTTP_PORT;
 httpServer.listen(HTTP_PORT, () => {

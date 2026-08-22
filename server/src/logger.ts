@@ -18,12 +18,26 @@ if (isDevelopment) {
   transports.push(new winston.transports.Console());
 }
 
+const formatMeta = (meta: Record<string, unknown>): string => {
+  const keys = Object.keys(meta);
+  if (keys.length === 0) {
+    return '';
+  }
+  try {
+    return ` ${JSON.stringify(meta)}`;
+  } catch {
+    return ` [unserializable meta: ${keys.join(', ')}]`;
+  }
+};
+
 const logger = winston.createLogger({
-  level: 'info', // Default log level
+  level: process.env.LOG_LEVEL || 'info',
   format: winston.format.combine(
+      winston.format.errors({ stack: true }),
+      winston.format.splat(),
       winston.format.timestamp({ format: 'YYYY-MM-DDTHH:mm:ss.SSSZ' }), // Custom timestamp format
-      winston.format.printf(({ timestamp, level, message }) => {
-        return `[${timestamp}] ${level.toUpperCase()}: [Server] ${message}`;
+      winston.format.printf(({ timestamp, level, message, ...meta }) => {
+        return `[${timestamp}] ${level.toUpperCase()}: [Server] ${message}${formatMeta(meta)}`;
       })),
   transports
 });
