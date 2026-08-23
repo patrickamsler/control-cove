@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react';
 import CoveCard from "../CoveCard/CoveCard";
-import { Box, Stack, Typography } from "@mui/material";
+import { Box, Stack } from "@mui/material";
 import DeviceThermostatIcon from '@mui/icons-material/DeviceThermostat';
 import { EnvironmentSensorDto } from "../../dto/EnvironmentSensorDto";
 
@@ -20,9 +19,9 @@ const SensorDisplay: React.FC<SensorDisplayProps> = ({environmentSensors}) => {
         <Stack direction="column" spacing={2}>
           {environmentSensors.map((sensor) => (
               <div key={sensor.id}>
-                <Box display="flex" alignItems="center" mb={2}>
+                <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
                   <DeviceThermostatIcon color="primary"/>
-                  <Box mr={2}>
+                  <Box sx={{ mr: 2 }}>
                     {formatSensor(sensor)}
                   </Box>
                 </Box>

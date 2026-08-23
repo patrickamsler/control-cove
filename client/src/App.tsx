@@ -104,15 +104,15 @@ const App = () => {
   return (
       <ThemeProvider theme={theme}>
         <CssBaseline/>
-        <Box padding={2}>
+        <Box sx={{ p: 2 }}>
           <Grid container spacing={2}>
-            <Grid item xs={6}>
+            <Grid size={6}>
               <LightControl
                   switches={switches}
                   actionHandler={emitSwitchUpdate}
               />
             </Grid>
-            <Grid item xs={6}>
+            <Grid size={6}>
               <SensorDisplay
                   environmentSensors={environmentSensors}
               />
