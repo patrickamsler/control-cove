@@ -7,7 +7,7 @@ import { EnvironmentSensorDto } from "./dto/EnvironmentSensorDto";
 import { SwitchDto } from "./dto/SwitchDto";
 import { SwitchEvent } from "./dto/SwitchEvent";
 import { EnvironmentSensorEvent } from "./dto/EnvironmentSensorEvent";
-import io from 'socket.io-client';
+import io, { Socket } from 'socket.io-client';
 
 const theme = createTheme({
   palette: {
@@ -22,7 +22,7 @@ const App = () => {
   }
   const [environmentSensors, setEnvironmentSensors] = useState<null | EnvironmentSensorDto[]>(null);
   const [switches, setSwitches] = useState<null | SwitchDto[]>(null);
-  const socketRef = useRef<SocketIOClient.Socket | null>(null);
+  const socketRef = useRef<Socket | null>(null);
   const [error, setError] = useState<null | string>(null)
 
   useEffect(() => {
