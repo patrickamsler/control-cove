@@ -30,7 +30,7 @@ Create the env files (they are gitignored):
 
 `server/.env`
 ```
-HTTP_PORT=8080
+HTTP_PORT=3001
 MQTT_URL=mqtt://192.168.1.2:1883
 MQTT_USERNAME=<your-username>
 MQTT_PASSWORD=<your-password>
