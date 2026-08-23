@@ -12,11 +12,24 @@ npm start                # concurrently: CRA dev server (client) + ts-node-dev (
 npm run start:client     # CRA only, port 3000
 npm run start:server     # server only (ts-node-dev --respawn --transpile-only)
 npm run build            # client CRA build + server tsc -> server/dist
-npm test                 # CRA/Jest tests in client/
+npm test                 # both suites: client then server
+npm run test:client      # CRA/Jest tests in client/
+npm run test:server      # Vitest tests in server/
 ```
 
 Single test (from `client/`): `npm test -- -t "test name"` or `npm test -- App.test.tsx`.
-There are no tests or lint script in `server/`; type errors surface via `npm run build --prefix server`.
+
+Server tests use **Vitest**, colocated as `src/**/*.test.ts`:
+
+```bash
+npm test --prefix server                        # vitest run
+npm run test:watch --prefix server              # watch mode
+npm run test:coverage --prefix server           # v8 coverage
+npm run test:types --prefix server              # tsc --noEmit over src + tests
+npm test --prefix server -- -t "test name"      # single test
+```
+
+Test files are excluded from `tsconfig.json` so `npm run build --prefix server` never emits them into `dist/`; `tsconfig.test.json` type-checks them instead. `src/test/setup.ts` globally mocks `src/logger.ts` (its `DailyRotateFile` transport would otherwise write real files on import) and sets dummy `MQTT_*` env vars. Service and controller tests mock `../config/devices` with the fixtures in `src/test/fixtures.ts`, so they do not break when the real device lists change. `WebSocketService` has no tests — it constructs a `socket.io` `Server` in its constructor with no injection seam. There is no lint script in `server/`.
 
 Local MQTT broker for development: `docker compose -f docker/docker-compose.yaml up` (Mosquitto, 1883 MQTT / 9001 WebSocket).
 

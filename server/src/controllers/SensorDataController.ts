@@ -9,7 +9,7 @@ export class SensorDataController {
 
   public getSensorData = (req: Request, res: Response) => {
     const sensorData = this.createSensorDataDtoFromConfig();
-    this.addCurrentState(sensorData);
+    this.addCurrentState(sensorData); // TODO : Should this be omitted entirely if no state has been received yet? (See comment in SensorDataController.addCurrentState)
     res.json(sensorData);
   }
 

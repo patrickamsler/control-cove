@@ -41,7 +41,7 @@ LOG_LEVEL=info
 
 `client/.env`
 ```
-REACT_APP_SERVER_URL=http://localhost:8080
+REACT_APP_SERVER_URL=http://localhost:3001
 ```
 
 ## Devices

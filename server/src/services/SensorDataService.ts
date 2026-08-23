@@ -83,7 +83,7 @@ export class SensorDataService {
     switches.forEach((switchConfig) => {
       this.mqttService.subscribeToTopic(switchConfig.stateTopic, (message) => {
         const device_id = switchConfig.stateTopic.split('/')[1];
-        const state = message == 'on';
+        const state = message == 'on'; // TODO in case of other values, we might want to log a warning and ignore the message
         const data = {device_id, state};
         this.updateSwitchData(switchConfig.id, data);
       });
