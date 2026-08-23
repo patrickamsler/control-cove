@@ -11,7 +11,7 @@ vi.mock('../logger', () => ({
   },
 }));
 
-// Dummy broker credentials so MqttService.connectToBroker() gets past its guard.
+// Dummy broker credentials so MqttClient.connectToBroker() gets past its guard.
 // Individual tests override or delete these as needed.
 process.env.MQTT_URL = 'mqtt://localhost:1883';
 process.env.MQTT_USERNAME = 'test-user';

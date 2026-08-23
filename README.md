@@ -7,16 +7,25 @@ Built with TypeScript, React (client) and Node/Express + socket.io (server).
 
 ## Architecture
 
-The **server** is the only MQTT participant — the browser never talks to the broker:
+The server sends and receives MQTT events and is the only package that talks to the
+MQTT broker. The web client communicates with the server through WebSockets and
+REST; it does not connect to MQTT directly.
 
+```text
+┌─────────────┐       MQTT       ┌────────┐       REST/HTTP (read)       ┌────────────┐
+│ MQTT broker │ <--------------> │ Server │ -------------------------->  │ Web client │
+└─────────────┘                  │        │ <--------------------------> │            │
+                                 └────────┘      WebSocket events        └────────────┘
 ```
-MQTT broker <-> server (MqttService) <-> socket.io <-> React client
-```
 
-Two packages, each with its own `package.json`:
+The project contains three packages:
 
-- `client/` — React app
-- `server/` — Express + socket.io + MQTT client
+- `client/` — the React web client
+- `server/` — the REST, WebSocket, and MQTT server
+- `shared/` — shared DTO schemas and TypeScript types
+
+Both `client` and `server` depend on `shared`, keeping their REST and WebSocket data
+types consistent.
 
 ## Prerequisites
 
@@ -48,14 +57,16 @@ REACT_APP_SERVER_URL=http://localhost:3001
 
 Devices are configured, not discovered. Edit:
 
-- `server/src/config/sensor-config.json` — `id`, `name`, `statusTopic`
+- `server/src/domain/sensor-config.json` — `id`, `name`, `statusTopic`
   (payload: JSON with numeric `temperature` / `humidity`)
-- `server/src/config/switch-config.json` — `id`, `name`, `commandTopic`, `stateTopic`
-  (payload: the plain strings `on` / `off`)
+- `server/src/domain/switch-config.json` — `id`, `name`, `commandTopic`, `stateTopic`
+  (payload: the plain strings `on` / `off`; anything else is logged and ignored)
 
-Both files are loaded, validated (unique ids, non-empty topics), and exposed as typed
-`switches` / `sensors` arrays plus `findSwitchById` / `findSensorById` lookups by
-`server/src/config/devices.ts`. Consumers import from there instead of the JSON files.
+Both files are loaded, validated with zod (unique ids, non-empty topics), and exposed
+as typed `switches` / `sensors` arrays plus `findSwitchById` / `findSensorById` lookups
+by `server/src/domain/devices.ts`. Consumers import from there instead of the JSON
+files. Ids are unique within a device type only — switch 1 and sensor 1 are different
+devices.
 
 ## Setup
 
@@ -66,20 +77,34 @@ npm run install:all
 npm start          # client on :3000, server on HTTP_PORT
 ```
 
+`shared/` is compiled to `shared/dist` (CommonJS for the server, ESM for the client's
+bundler), which the other two packages import — so it is built first by `install:all`
+and `build`. `npm start` runs `tsc -w` on it alongside the
+apps; if you run the apps individually, re-run `npm run build:shared` after editing it.
+
 ## Commands
 
 ```bash
-npm run install:all    # install deps in client/ and server/
-npm start              # run client and server together
+npm run install:all    # install deps in shared/, client/ and server/
+npm start              # run all three together
 npm run start:client   # client only
 npm run start:server   # server only
-npm run build          # build client + compile server to server/dist
-npm test               # client tests
+npm run start:shared   # shared in watch mode only
+npm run build          # build shared + client, compile server to server/dist
+npm run build:shared   # shared only
+npm test               # client and server tests
 ```
 
 ## API
 
-- `GET /api/sensors` — current sensors and switches
+- `GET /api/switches` — all configured switches with their latest known state
+- `GET /api/sensors` — all configured sensors with their latest reading
+- `GET /api-docs` — Swagger UI (the OpenAPI document itself is at `/api-docs.json`)
 - socket.io events — emitted: `initial`, `sensor`, `switch`; received: `updateSwitch`
 
-State is kept in memory only; it is empty after a restart until devices publish again.
+REST and socket.io carry the same DTOs, defined in `shared/`: the endpoints return
+arrays of them, the events carry one device at a time. The OpenAPI schemas are
+generated from those same zod schemas, so the docs cannot drift from the payloads.
+
+State is kept in memory only; it is empty after a restart until devices publish again,
+and `state` / `temperature` / `humidity` are simply absent until then.

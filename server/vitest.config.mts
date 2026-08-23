@@ -10,8 +10,8 @@ export default defineConfig({
       provider: 'v8',
       include: ['src/**/*.ts'],
       // index.ts is pure wiring with top-level side effects; logger.ts is
-      // configuration that every test mocks; dto/** are type-only declarations.
-      exclude: ['src/index.ts', 'src/logger.ts', 'src/dto/**', 'src/test/**', 'src/**/*.test.ts'],
+      // configuration that every test mocks.
+      exclude: ['src/index.ts', 'src/logger.ts', 'src/test/**', 'src/**/*.test.ts'],
     },
   },
 });

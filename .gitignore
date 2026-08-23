@@ -1,9 +1,11 @@
 /node_modules
 /server/node_modules
 /client/node_modules
+/shared/node_modules
 
 /server/dist
 /client/dist
+/shared/dist
 
 # If you’re using Yarn Plug’n’Play
 /.pnp

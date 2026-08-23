@@ -1,13 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import LightControl from './components/LightControl/LightControl';
 import { Box, CssBaseline, Grid } from '@mui/material';
+import LightControl from './components/LightControl/LightControl';
 import SensorDisplay from './components/SensorDisplay/SensorDisplay';
-import { EnvironmentSensorDto } from "./dto/EnvironmentSensorDto";
-import { SwitchDto } from "./dto/SwitchDto";
-import { SwitchEvent } from "./dto/SwitchEvent";
-import { EnvironmentSensorEvent } from "./dto/EnvironmentSensorEvent";
-import io, { Socket } from 'socket.io-client';
+import { useDevices } from './hooks/useDevices';
 
 const theme = createTheme({
   palette: {
@@ -16,88 +12,12 @@ const theme = createTheme({
 });
 
 const App = () => {
-  const serverUrl = process.env.REACT_APP_SERVER_URL;
-  if (!serverUrl) {
-    throw new Error('REACT_APP_SERVER_URL is not set');
-  }
-  const [environmentSensors, setEnvironmentSensors] = useState<null | EnvironmentSensorDto[]>(null);
-  const [switches, setSwitches] = useState<null | SwitchDto[]>(null);
-  const socketRef = useRef<Socket | null>(null);
-  const [error, setError] = useState<null | string>(null)
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch(`${serverUrl}/api/sensors`);
-        if (!response.ok) {
-          setError(`HTTP error! status: ${response.status}`);
-          return;
-        }
-        const result = await response.json();
-        setEnvironmentSensors(result.environmentSensors);
-        setSwitches(result.switches);
-      } catch (error: any) {
-        setError(`Fetch error: ${error.message}`);
-      }
-    };
-
-    fetchData();
-  }, [serverUrl]);
-
-  useEffect(() => {
-    const socket = io(serverUrl);
-    socketRef.current = socket;
-    socket.on('switch', (message: SwitchEvent) => {
-      updateSwitches(message);
-    });
-    socket.on('sensor', (message: EnvironmentSensorEvent) => {
-      updateSensorData(message);
-    });
-    return () => {
-      socket.disconnect();
-    };
-  }, [serverUrl]);
-
-  const updateSwitches = (message: SwitchEvent) => {
-    setSwitches((prevSwitches) => {
-      if (!prevSwitches) {
-        return prevSwitches;
-      }
-      return prevSwitches.map((sw) => {
-        if (sw.id === message.id) {
-          return {...sw, state: message.data.state};
-        }
-        return sw;
-      });
-    });
-  }
-
-  const updateSensorData = (message: EnvironmentSensorEvent) => {
-    setEnvironmentSensors((prevSensors) => {
-      if (!prevSensors) {
-        return prevSensors;
-      }
-      return prevSensors.map((sensor) => {
-        if (sensor.id === message.id) {
-          return {...sensor, temperature: message.data.temperature, humidity: message.data.humidity};
-        }
-        return sensor;
-      });
-    });
-  }
-
-  const emitSwitchUpdate = (switchId: number, newState: boolean) => {
-    if (socketRef.current) {
-      socketRef.current.emit('updateSwitch', { id: switchId, state: newState });
-    } else {
-      console.error('Socket not initialized');
-    }
-  };
+  const { switches, sensors, error, loading, setSwitch } = useDevices();
 
   if (error) {
     return <div>Error: {error}</div>;
   }
-  if (!switches || !environmentSensors) {
+  if (loading || !switches || !sensors) {
     return <div>Loading...</div>;
   }
 
@@ -109,12 +29,12 @@ const App = () => {
             <Grid size={6}>
               <LightControl
                   switches={switches}
-                  actionHandler={emitSwitchUpdate}
+                  actionHandler={setSwitch}
               />
             </Grid>
             <Grid size={6}>
               <SensorDisplay
-                  environmentSensors={environmentSensors}
+                  sensors={sensors}
               />
             </Grid>
           </Grid>

@@ -3,13 +3,15 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "install:all": "npm install --prefix client && npm install --prefix server",
-    "build": "npm run build --prefix client && npm run build --prefix server",
+    "install:all": "npm install --prefix shared && npm run build --prefix shared && npm install --prefix client && npm install --prefix server",
+    "build": "npm run build --prefix shared && npm run build --prefix client && npm run build --prefix server",
+    "build:shared": "npm run build --prefix shared",
     "start:client": "npm start --prefix client",
     "start:server": "npm run dev --prefix server",
-    "start": "concurrently \"npm run start:client\" \"npm run start:server\"",
+    "start:shared": "npm run dev --prefix shared",
+    "start": "concurrently \"npm run start:shared\" \"npm run start:client\" \"npm run start:server\"",
     "test": "npm run test:client && npm run test:server",
-    "test:client": "npm test --prefix client",
+    "test:client": "npm test --prefix client -- --watchAll=false",
     "test:server": "npm test --prefix server"
   },
   "devDependencies": {
