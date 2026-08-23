@@ -18,13 +18,14 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.cjs.json && tsc -p tsconfig.esm.json && node scripts/write-module-type.js",
-    "dev": "tsc -p tsconfig.cjs.json -w",
+    "dev": "node scripts/write-module-type.js && concurrently --names cjs,esm \"tsc -p tsconfig.cjs.json -w --preserveWatchOutput\" \"tsc -p tsconfig.esm.json -w --preserveWatchOutput\"",
     "prepare": "npm run build"
   },
   "dependencies": {
     "zod": "^4.1.13"
   },
   "devDependencies": {
+    "concurrently": "^10.0.5",
     "typescript": "^5.9.3"
   }
 }

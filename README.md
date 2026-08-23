@@ -7,25 +7,25 @@ Built with TypeScript, React (client) and Node/Express + socket.io (server).
 
 ## Architecture
 
-The **server** is the only MQTT participant — the browser never talks to the broker:
+The server sends and receives MQTT events and is the only package that talks to the
+MQTT broker. The web client communicates with the server through WebSockets and
+REST; it does not connect to MQTT directly.
 
+```text
+┌─────────────┐       MQTT       ┌────────┐       REST/HTTP (read)       ┌────────────┐
+│ MQTT broker │ <--------------> │ Server │ -------------------------->  │ Web client │
+└─────────────┘                  │        │ <--------------------------> │            │
+                                 └────────┘      WebSocket events        └────────────┘
 ```
-                      ┌─ http/  (REST + Swagger) ─┐
-MQTT broker <-> mqtt/ ─┼─ domain/DeviceService ────┼─> React client
-                      └─ ws/    (socket.io) ──────┘
-```
 
-`server/src` is layered: `domain/` owns the devices and their state and knows nothing
-about transports, while `mqtt/`, `http/` and `ws/` are adapters over it.
+The project contains three packages:
 
-Three packages, each with its own `package.json`:
+- `client/` — the React web client
+- `server/` — the REST, WebSocket, and MQTT server
+- `shared/` — shared DTO schemas and TypeScript types
 
-- `shared/` — the DTOs: zod schemas plus the types inferred from them
-- `client/` — React app
-- `server/` — Express + socket.io + MQTT client
-
-`client` and `server` both depend on `shared` (via `file:../shared`), so the REST
-responses and socket events are defined once and type-checked on both sides.
+Both `client` and `server` depend on `shared`, keeping their REST and WebSocket data
+types consistent.
 
 ## Prerequisites
 

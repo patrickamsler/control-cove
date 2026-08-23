@@ -4,6 +4,7 @@
     "moduleResolution": "node",
     "lib": ["ES2019"],
     "rootDir": "src",
+    "outDir": "dist",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,

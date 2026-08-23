@@ -11,7 +11,7 @@ npm run install:all      # install deps in shared/, client/ and server/ (builds 
 npm start                # concurrently: shared tsc -w + CRA dev server + tsx watch server
 npm run start:client     # CRA only, port 3000
 npm run start:server     # server only (tsx watch)
-npm run start:shared     # shared tsc -w only
+npm run start:shared     # shared tsc -w only (both cjs + esm)
 npm run build            # shared tsc -> client CRA build -> server tsc
 npm run build:shared     # shared only
 npm test                 # both suites: client then server
@@ -22,7 +22,10 @@ npm run test:server      # Vitest tests in server/
 **`shared/` must be built before either package compiles.** `tsx watch` and CRA both
 read `shared/dist`, not its source, so after editing `shared/src` run
 `npm run build:shared` — or keep `npm run start:shared` running, which `npm start`
-already does.
+already does. That watch script runs `tsc -w` over **both** the cjs and esm projects
+concurrently: watching only cjs would refresh the server and the `.d.ts` files while
+webpack kept bundling a stale `dist/esm`, so the client would type-check green against
+the new contract while running the old code.
 
 `shared` is built **twice**: `dist/cjs` (for the server, via `main`) and `dist/esm`
 (for webpack, via the `import` condition in `exports`). This is not gold-plating — CRA 5
@@ -31,7 +34,8 @@ through its `require` condition to `zod/index.cjs`, which then falls through to
 file-loader and is emitted as a **static asset**. The import silently becomes a URL
 string and `z.object` throws `Cannot read properties of undefined` in the browser —
 while `tsc` and `react-scripts build` both report success. `scripts/write-module-type.js`
-stamps a `package.json` with the right `"type"` into each output directory, and
+stamps a `package.json` with the right `"type"` into each output directory (it runs
+once up front in the watch script too, since `tsc -w` never writes those files), and
 `shared/src` uses explicit `.js` import extensions so both builds are genuinely loadable.
 
 If the client fails to resolve `@control-cove/shared` after changing that layout, clear
