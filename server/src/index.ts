@@ -1,37 +1,43 @@
-import express, { Router } from 'express';
+import express from 'express';
+import cors from 'cors';
 import { createServer } from 'http';
-import { MqttService } from './services/MqttService';
-import { SensorDataService } from './services/SensorDataService';
 import * as dotenv from 'dotenv';
-import { WebSocketService } from "./services/WebSocketService";
-import { ActorService } from "./services/ActorService";
-import { SensorDataController } from './controllers/SensorDataController';
-import logger from "./logger";
+import swaggerUi from 'swagger-ui-express';
+import { DeviceService } from './domain/DeviceService';
+import { MqttClient } from './mqtt/MqttClient';
+import { MqttDeviceGateway } from './mqtt/MqttDeviceGateway';
+import { WebSocketService } from './ws/WebSocketService';
+import { registerWebSocketHandlers } from './ws/registerWebSocketHandlers';
+import { createApiRouter } from './http/routes';
+import { openApiDocument } from './http/openapi';
+import logger from './logger';
 
 const result = dotenv.config();
 logger.info(`Environment variables loaded: ${Object.keys(result.parsed ?? {}).join(', ')}`);
 
 const app = express();
 const httpServer = createServer(app);
-const mqttService = new MqttService();
+
+// The gateway is the domain's command port, and needs the service to push
+// inbound readings into — so it is constructed first and started last.
+const mqttClient = new MqttClient();
+const mqttDeviceGateway = new MqttDeviceGateway(mqttClient);
+const deviceService = new DeviceService(mqttDeviceGateway);
 const webSocketService = new WebSocketService(httpServer);
-const sensorDataService = new SensorDataService(mqttService, webSocketService);
-const actorService = new ActorService(mqttService, webSocketService);
-const sensorDataController = new SensorDataController(sensorDataService);
 
 const API_ROOT = '/api';
-const router = Router();
-router.get("/sensors", sensorDataController.getSensorData);
+app.use(cors());
 app.use(express.json());
-app.use(API_ROOT, router);
+app.use(API_ROOT, createApiRouter(deviceService));
+app.get('/api-docs.json', (req, res) => res.json(openApiDocument));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiDocument));
 
-const HTTP_PORT = process.env.HTTP_PORT;
-httpServer.listen(HTTP_PORT, () => {
-  logger.info(`[Server] Listening on port ${HTTP_PORT}`);
+httpServer.listen(process.env.HTTP_PORT, () => {
+  logger.info(`[Server] Listening on port ${process.env.HTTP_PORT}`);
 });
-mqttService.connectToBroker(() => {
+
+mqttClient.connectToBroker(() => {
   logger.info('Registering MQTT topics and WebSocket events');
-  sensorDataService.registerMqttTopics();
-  sensorDataService.registerWebsocketEvents();
-  actorService.registerWebsocketEvents();
+  mqttDeviceGateway.start(deviceService);
+  registerWebSocketHandlers(webSocketService, deviceService);
 });

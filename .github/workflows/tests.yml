@@ -18,7 +18,12 @@ jobs:
         with:
           node-version: '24'
           cache: npm
-          cache-dependency-path: client/package-lock.json
+          cache-dependency-path: |
+            shared/package-lock.json
+            client/package-lock.json
+      # client imports @control-cove/shared from its compiled dist/
+      - run: npm ci --prefix shared
+      - run: npm run build --prefix shared
       - run: npm ci --prefix client
       - run: npm test --prefix client
         env:
@@ -34,7 +39,12 @@ jobs:
         with:
           node-version: '24'
           cache: npm
-          cache-dependency-path: server/package-lock.json
+          cache-dependency-path: |
+            shared/package-lock.json
+            server/package-lock.json
+      # server imports @control-cove/shared from its compiled dist/
+      - run: npm ci --prefix shared
+      - run: npm run build --prefix shared
       - run: npm ci --prefix server
       - run: npm test --prefix server
       - run: npm run test:types --prefix server

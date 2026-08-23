@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { FormControlLabel, Switch, Stack } from '@mui/material';
 import CoveCard from "../CoveCard/CoveCard";
-import { SwitchDto } from "../../dto/SwitchDto";
+import { SwitchDto } from "@control-cove/shared";
 
 
 interface LightControlProps {
@@ -17,7 +17,7 @@ const LightControl: React.FC<LightControlProps> = ({ switches, actionHandler }) 
                 <FormControlLabel
                     control={
                       <Switch
-                          checked={sw.state}
+                          checked={sw.state ?? false}
                           onChange={(event) => actionHandler(sw.id, event.target.checked)}
                           name={`Switch ${sw.id}`}
                       />

@@ -1,15 +1,15 @@
 import CoveCard from "../CoveCard/CoveCard";
 import { Box, Stack } from "@mui/material";
 import DeviceThermostatIcon from '@mui/icons-material/DeviceThermostat';
-import { EnvironmentSensorDto } from "../../dto/EnvironmentSensorDto";
+import { SensorDto } from "@control-cove/shared";
 
 type SensorDisplayProps = {
-  environmentSensors : EnvironmentSensorDto[];
+  sensors : SensorDto[];
 }
 
-const SensorDisplay: React.FC<SensorDisplayProps> = ({environmentSensors}) => {
+const SensorDisplay: React.FC<SensorDisplayProps> = ({sensors}) => {
 
-  function formatSensor(sensor: EnvironmentSensorDto) {
+  function formatSensor(sensor: SensorDto) {
     return <>{sensor.temperature !== undefined ? sensor.temperature.toFixed(1) : '-'}°C
       / {sensor.humidity !== undefined ? sensor.humidity.toFixed(1) : '-'}% {sensor.name}</>;
   }
@@ -17,7 +17,7 @@ const SensorDisplay: React.FC<SensorDisplayProps> = ({environmentSensors}) => {
   return (
       <CoveCard title="Sensors">
         <Stack direction="column" spacing={2}>
-          {environmentSensors.map((sensor) => (
+          {sensors.map((sensor) => (
               <div key={sensor.id}>
                 <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
                   <DeviceThermostatIcon color="primary"/>
