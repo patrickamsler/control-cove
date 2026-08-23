@@ -94,6 +94,33 @@ Wiring happens in `server/src/index.ts`: services are constructed manually and i
 
 **Client structure**: `api/` (REST fetch + socket factory, both reading `api/config.ts`), `hooks/useDevices.ts` (all device state — REST snapshot, socket `initial`, live updates, `setSwitch`), and presentational components. `App.tsx` holds layout only. REST responses are validated with the shared schemas, so a server/client mismatch surfaces as an error rather than as `undefined` deep in a component.
 
+## Deployment
+
+One image, one process: the root `Dockerfile` builds all three packages and copies the CRA
+output to `server/public`, which `server/src/index.ts` serves with `express.static` plus an
+SPA fallback registered **after** `/api` and `/api-docs` so those keep winning. The fallback
+route is `'/*splat'` — Express 5 uses path-to-regexp v8, where the bare `'*'` of Express 4
+throws at registration. The static block is guarded by `fs.existsSync`, so `npm run dev`
+without a client build still serves the API alone.
+
+Because the client is served same-origin, `REACT_APP_SERVER_URL` is built as the **empty
+string** and `client/src/api/config.ts` therefore rejects only `undefined`, not `''`.
+`api/socket.ts` must call `io()` with no argument in that case — `io('')` is not the same
+thing. `.dockerignore` excludes `**/.env*` so the local `client/.env` (`localhost:3001`)
+cannot leak in and override the same-origin build.
+
+The runtime stage preserves the `/app/shared` ↔ `/app/server` layout, because
+`server/node_modules/@control-cove/shared` is a **symlink** to `../../../shared` created by
+the `file:` dependency; `COPY` dereferences symlinks, so the Dockerfile re-creates it
+explicitly. `npm ci --prefix shared` builds `shared` on its own via its `prepare` script,
+and `npm prune --omit=dev` runs only *after* every build, since that build needs its
+devDep `typescript`.
+
+`logger.ts` writes to the console unconditionally (not only in development) so `docker logs`
+shows something, and always writes rotated files under `LOG_PATH` — the container needs that
+directory writable. `dotenv.config()` never overrides real environment variables, so the
+image carries no `.env`.
+
 ## Configuration
 
 Env files are gitignored; `.env` and `.env.production` exist in both `client/` and `server/`.

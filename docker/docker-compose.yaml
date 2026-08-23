@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   mosquitto:
     image: eclipse-mosquitto
@@ -10,3 +9,20 @@ services:
       - ./mosquitto/config:/mosquitto/config
       - ./mosquitto/data:/mosquitto/data
       - ./mosquitto/log:/mosquitto/log
+
+  control-cove:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: control-cove
+    ports:
+      - "8080:8080"
+    environment:
+      MQTT_URL: mqtt://mosquitto:1883
+      MQTT_USERNAME: ${MQTT_USERNAME:-dev}
+      MQTT_PASSWORD: ${MQTT_PASSWORD:-dev}
+    volumes:
+      - ./logs:/var/log/control-cove
+    depends_on:
+      - mosquitto
+    restart: unless-stopped

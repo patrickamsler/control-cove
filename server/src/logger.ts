@@ -3,9 +3,11 @@ import DailyRotateFile from 'winston-daily-rotate-file';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const isDevelopment = process.env.NODE_ENV === 'development';
-
 const transports = [];
+
+// Always on: in a container this is what `docker logs` reads.
+transports.push(new winston.transports.Console());
+
 transports.push(new DailyRotateFile({
   filename: `${process.env.LOG_PATH || 'logs'}/%DATE%.log`,
   datePattern: 'YYYY-MM-DD',
@@ -13,10 +15,6 @@ transports.push(new DailyRotateFile({
   maxSize: '20m',
   maxFiles: '10d'
 }));
-
-if (isDevelopment) {
-  transports.push(new winston.transports.Console());
-}
 
 const formatMeta = (meta: Record<string, unknown>): string => {
   const keys = Object.keys(meta);

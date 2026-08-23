@@ -1,0 +1,22 @@
+.git
+.github
+.idea
+*.iml
+.DS_Store
+
+# Never inherit host installs or build output — the image builds its own.
+**/node_modules
+shared/dist
+server/dist
+client/dist
+client/build
+server/logs
+**/coverage
+
+# The local .env files point at localhost / the dev broker. Runtime config is
+# passed as real environment variables instead.
+**/.env
+**/.env.*
+
+docker/mosquitto/data
+docker/mosquitto/log
