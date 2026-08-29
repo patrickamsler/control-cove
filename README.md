@@ -95,6 +95,44 @@ npm run build:shared   # shared only
 npm test               # client and server tests
 ```
 
+## Deployment
+
+The whole app ships as a single Docker image: the Express server serves the compiled
+React bundle from `server/public` alongside the API, so the browser talks to the origin it
+loaded from — one process, one port, no CORS.
+
+```bash
+docker buildx build --platform linux/arm64 -t control-cove:latest --load .
+docker run -p 8080:8080 \
+  -e MQTT_URL=mqtt://broker:1883 -e MQTT_USERNAME=... -e MQTT_PASSWORD=... \
+  -v control-cove-logs:/var/log/control-cove \
+  control-cove:latest
+```
+
+The image reads its configuration from real environment variables, not a `.env` file:
+`MQTT_URL`, `MQTT_USERNAME`, `MQTT_PASSWORD` are required; `HTTP_PORT` (8080),
+`LOG_PATH` (`/var/log/control-cove`) and `LOG_LEVEL` have defaults.
+
+`REACT_APP_SERVER_URL` is a **build-time** value baked into the bundle. The Dockerfile
+defaults it to the empty string, which means "same origin". Point it somewhere else with
+`--build-arg REACT_APP_SERVER_URL=https://…` only if the client is hosted separately.
+
+`docker/docker-compose.yaml` runs the app together with a local Mosquitto broker
+(`docker compose -f docker/docker-compose.yaml up --build`); bring up just the broker for
+development with `docker compose -f docker/docker-compose.yaml up mosquitto`.
+
+### Releases
+
+Every push to `main` runs `.github/workflows/release.yml`: a semver git tag is derived from the
+conventional-commit messages since the last tag (`feat:` → minor, `fix:` → patch,
+`BREAKING CHANGE` → major, otherwise patch) and pushed as `vX.Y.Z`. The Docker image is
+built for `linux/amd64` and `linux/arm64` and published to Docker Hub as
+`patrickamsler/control-cove:X.Y.Z` and `patrickamsler/control-cove:latest`.
+
+```bash
+docker run -p 8080:8080 -e MQTT_URL=mqtt://broker:1883 patrickamsler/control-cove:latest
+```
+
 ## API
 
 - `GET /api/switches` — all configured switches with their latest known state

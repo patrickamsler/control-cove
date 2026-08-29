@@ -45,3 +45,5 @@ client/src/config/broker-config.json
 *.iml
 
 /server/logs
+/docker/logs
+/server/public
