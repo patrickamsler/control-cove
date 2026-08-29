@@ -128,4 +128,4 @@ Env files are gitignored; `.env` and `.env.production` exist in both `client/` a
 - `server/.env`: `HTTP_PORT`, `MQTT_URL`, `MQTT_USERNAME`, `MQTT_PASSWORD`, `NODE_ENV`, `LOG_PATH`, optional `LOG_LEVEL`.
 - `client/.env`: `REACT_APP_SERVER_URL` — `api/config.ts` throws at import if unset.
 
-`server/src/logger.ts` (winston) always writes daily-rotated files under `LOG_PATH`; console output is added only when `NODE_ENV=development`. Prefer `logger` over `console.log` in server code.
+`server/src/logger.ts` (winston) always writes daily-rotated files under `LOG_PATH`; console output is always on. Prefer `logger` over `console.log` in server code.
