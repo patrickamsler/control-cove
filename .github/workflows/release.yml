@@ -51,7 +51,7 @@ jobs:
           # Defined-but-empty means "same origin", which is what this image
           # serves. See the Deployment section of CLAUDE.md.
           build-args: |
-            REACT_APP_SERVER_URL=
+            VITE_SERVER_URL=
           tags: |
             patrickamsler/control-cove:${{ steps.tag.outputs.new_version }}
             patrickamsler/control-cove:latest
@@ -59,7 +59,7 @@ jobs:
             org.opencontainers.image.version=${{ steps.tag.outputs.new_version }}
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
-          # The arm64 leg runs under QEMU; without a cache the CRA build alone
-          # takes minutes.
+          # The arm64 leg runs under QEMU; without a cache the whole build is
+          # re-run from scratch on every push.
           cache-from: type=gha
           cache-to: type=gha,mode=max

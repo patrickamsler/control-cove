@@ -11,7 +11,7 @@
     "start:shared": "npm run dev --prefix shared",
     "start": "concurrently \"npm run start:shared\" \"npm run start:client\" \"npm run start:server\"",
     "test": "npm run test:client && npm run test:server",
-    "test:client": "npm test --prefix client -- --watchAll=false",
+    "test:client": "npm test --prefix client",
     "test:server": "npm test --prefix server"
   },
   "devDependencies": {

@@ -1,4 +1,4 @@
-# Single image: the Express server also serves the CRA build (see CLAUDE.md).
+# Single image: the Express server also serves the Vite build (see CLAUDE.md).
 # Build for the Pi with:
 #   docker buildx build --platform linux/arm64 -t control-cove:latest --load .
 
@@ -15,14 +15,15 @@ COPY shared/src ./shared/src
 # `prepare` runs the dual cjs/esm build and stamps the "type" package.json files.
 RUN npm ci --prefix shared
 
-# REACT_APP_SERVER_URL is substituted into the bundle at build time. Empty means
+# VITE_SERVER_URL is substituted into the bundle at build time. Empty means
 # "same origin", which is what this image serves. Written to a file rather than
-# passed as ENV so CRA sees it as defined-but-empty rather than absent.
-ARG REACT_APP_SERVER_URL=""
-COPY client/package.json client/package-lock.json client/.npmrc ./client/
+# passed as ENV so Vite sees it as defined-but-empty rather than absent —
+# `vite build` loads .env.production because it defaults to mode=production.
+ARG VITE_SERVER_URL=""
+COPY client/package.json client/package-lock.json ./client/
 RUN npm ci --prefix client
 COPY client ./client
-RUN echo "REACT_APP_SERVER_URL=$REACT_APP_SERVER_URL" > client/.env.production \
+RUN echo "VITE_SERVER_URL=$VITE_SERVER_URL" > client/.env.production \
     && npm run build --prefix client
 
 COPY server/package.json server/package-lock.json ./server/

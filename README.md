@@ -65,7 +65,7 @@ LOG_LEVEL=info
 
 `client/.env`
 ```
-REACT_APP_SERVER_URL=http://localhost:3001
+VITE_SERVER_URL=http://localhost:3001
 ```
 
 ## Devices
@@ -92,8 +92,7 @@ npm run install:all
 npm start          # client on :3000, server on HTTP_PORT
 ```
 
-`shared/` is compiled to `shared/dist` (CommonJS for the server, ESM for the client's
-bundler), which the other two packages import — so it is built first by `install:all`
+`shared/` is compiled to `shared/dist` (CommonJS for the server, ESM for Vite), which the other two packages import — so it is built first by `install:all`
 and `build`. `npm start` runs `tsc -w` on it alongside the
 apps; if you run the apps individually, re-run `npm run build:shared` after editing it.
 
@@ -128,9 +127,9 @@ The image reads its configuration from real environment variables, not a `.env` 
 `MQTT_URL`, `MQTT_USERNAME`, `MQTT_PASSWORD` are required; `HTTP_PORT` (8080),
 `LOG_PATH` (`/var/log/control-cove`) and `LOG_LEVEL` have defaults.
 
-`REACT_APP_SERVER_URL` is a **build-time** value baked into the bundle. The Dockerfile
+`VITE_SERVER_URL` is a **build-time** value baked into the bundle. The Dockerfile
 defaults it to the empty string, which means "same origin". Point it somewhere else with
-`--build-arg REACT_APP_SERVER_URL=https://…` only if the client is hosted separately.
+`--build-arg VITE_SERVER_URL=https://…` only if the client is hosted separately.
 
 `docker/docker-compose.yaml` runs the app together with a local Mosquitto broker
 (`docker compose -f docker/docker-compose.yaml up --build`); bring up just the broker for
