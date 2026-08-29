@@ -8,41 +8,61 @@ All commands run from the repo root unless noted.
 
 ```bash
 npm run install:all      # install deps in shared/, client/ and server/ (builds shared first)
-npm start                # concurrently: shared tsc -w + CRA dev server + tsx watch server
-npm run start:client     # CRA only, port 3000
+npm start                # concurrently: shared tsc -w + Vite dev server + tsx watch server
+npm run start:client     # Vite dev server only, port 3000
 npm run start:server     # server only (tsx watch)
 npm run start:shared     # shared tsc -w only (both cjs + esm)
-npm run build            # shared tsc -> client CRA build -> server tsc
+npm run build            # shared tsc -> client tsc -b + vite build -> server tsc
 npm run build:shared     # shared only
 npm test                 # both suites: client then server
-npm run test:client      # CRA/Jest tests in client/ (--watchAll=false)
+npm run test:client      # Vitest tests in client/
 npm run test:server      # Vitest tests in server/
 ```
 
-**`shared/` must be built before either package compiles.** `tsx watch` and CRA both
+**`shared/` must be built before either package compiles.** `tsx watch` and Vite both
 read `shared/dist`, not its source, so after editing `shared/src` run
 `npm run build:shared` — or keep `npm run start:shared` running, which `npm start`
 already does. That watch script runs `tsc -w` over **both** the cjs and esm projects
 concurrently: watching only cjs would refresh the server and the `.d.ts` files while
-webpack kept bundling a stale `dist/esm`, so the client would type-check green against
+Vite kept serving a stale `dist/esm`, so the client would type-check green against
 the new contract while running the old code.
 
 `shared` is built **twice**: `dist/cjs` (for the server, via `main`) and `dist/esm`
-(for webpack, via the `import` condition in `exports`). This is not gold-plating — CRA 5
-has no webpack rule for `.cjs`, so a CommonJS-only `shared` makes webpack resolve zod
-through its `require` condition to `zod/index.cjs`, which then falls through to
-file-loader and is emitted as a **static asset**. The import silently becomes a URL
-string and `z.object` throws `Cannot read properties of undefined` in the browser —
-while `tsc` and `react-scripts build` both report success. `scripts/write-module-type.js`
-stamps a `package.json` with the right `"type"` into each output directory (it runs
-once up front in the watch script too, since `tsc -w` never writes those files), and
-`shared/src` uses explicit `.js` import extensions so both builds are genuinely loadable.
+(for Vite, via the `import` condition in `exports`). Both halves are load bearing, for
+different reasons. The server's `tsc` output is `module: commonjs`, so it `require()`s
+the package. Vite would happily pre-bundle the CJS build instead — nothing breaks — but
+`shared`'s `require('zod')` then resolves through zod's own `require` condition to
+`zod/index.cjs`, whose `exports.x = ...` assignments defeat Rollup's tree-shaking, so
+the **whole** of zod lands in the bundle rather than the parts the four DTO schemas
+reach. Measured: 437 kB (gzip 137) with `dist/esm`, 724 kB (gzip 186) without.
+`scripts/write-module-type.js` stamps a `package.json` with the right `"type"` into each
+output directory (it runs once up front in the watch script too, since `tsc -w` never
+writes those files), and `shared/src` uses explicit `.js` import extensions so both
+builds are genuinely loadable.
 
-If the client fails to resolve `@control-cove/shared` after changing that layout, clear
-CRA's webpack cache (`rm -rf client/node_modules/.cache`) — it caches module resolution
-across dev-server restarts and will keep serving the old paths.
+Because `@control-cove/shared` is installed as a symlinked `file:` dependency, Vite
+would leave it out of dependency pre-bundling by default and serve its bare `zod`
+import unbundled on every reload; `optimizeDeps.include` in `client/vite.config.ts`
+opts it back in. If the client fails to resolve the package after changing that
+layout, clear Vite's dep cache (`rm -rf client/node_modules/.vite`).
 
-Single test (from `client/`): `npm test -- -t "test name"` or `npm test -- useDevices`.
+Client tests use **Vitest + jsdom**, configured in the `test` block of
+`client/vite.config.ts` rather than a separate file, since Vite and Vitest share the
+resolver here:
+
+```bash
+npm test --prefix client                        # vitest run
+npm run test:watch --prefix client              # watch mode
+npm run test:types --prefix client              # tsc -b --force over src + vite.config.ts
+npm run lint --prefix client                    # eslint flat config
+npm test --prefix client -- -t "test name"      # single test
+```
+
+`src/setupTests.ts` registers the `@testing-library/jest-dom/vitest` matchers, and
+`globals: true` (matching `server/`) is what lets `@testing-library/react` install its
+automatic cleanup. `test.env` supplies `VITE_SERVER_URL: ''`, because
+`api/config.ts` throws at **import** time when the variable is absent — and Vitest's
+automocking imports the real module to derive its shape.
 
 Server tests use **Vitest**, colocated as `src/**/*.test.ts`:
 
@@ -96,14 +116,14 @@ Wiring happens in `server/src/index.ts`: services are constructed manually and i
 
 ## Deployment
 
-One image, one process: the root `Dockerfile` builds all three packages and copies the CRA
-output to `server/public`, which `server/src/index.ts` serves with `express.static` plus an
+One image, one process: the root `Dockerfile` builds all three packages and copies the Vite
+output (`client/build`, kept off Vite's default `dist` so the existing paths hold) to `server/public`, which `server/src/index.ts` serves with `express.static` plus an
 SPA fallback registered **after** `/api` and `/api-docs` so those keep winning. The fallback
 route is `'/*splat'` — Express 5 uses path-to-regexp v8, where the bare `'*'` of Express 4
 throws at registration. The static block is guarded by `fs.existsSync`, so `npm run dev`
 without a client build still serves the API alone.
 
-Because the client is served same-origin, `REACT_APP_SERVER_URL` is built as the **empty
+Because the client is served same-origin, `VITE_SERVER_URL` is built as the **empty
 string** and `client/src/api/config.ts` therefore rejects only `undefined`, not `''`.
 `api/socket.ts` must call `io()` with no argument in that case — `io('')` is not the same
 thing. `.dockerignore` excludes `**/.env*` so the local `client/.env` (`localhost:3001`)
@@ -126,6 +146,7 @@ image carries no `.env`.
 Env files are gitignored; `.env` and `.env.production` exist in both `client/` and `server/`.
 
 - `server/.env`: `HTTP_PORT`, `MQTT_URL`, `MQTT_USERNAME`, `MQTT_PASSWORD`, `NODE_ENV`, `LOG_PATH`, optional `LOG_LEVEL`.
-- `client/.env`: `REACT_APP_SERVER_URL` — `api/config.ts` throws at import if unset.
+- `client/.env`: `VITE_SERVER_URL` — `api/config.ts` throws at import if unset. Vite only
+  exposes variables prefixed `VITE_`.
 
 `server/src/logger.ts` (winston) always writes daily-rotated files under `LOG_PATH`; console output is always on. Prefer `logger` over `console.log` in server code.

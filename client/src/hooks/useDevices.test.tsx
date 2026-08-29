@@ -1,14 +1,15 @@
+import { vi } from 'vitest';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { useDevices } from './useDevices';
 import { createSocket } from '../api/socket';
 import { fetchSensors, fetchSwitches } from '../api/rest';
 
-jest.mock('../api/rest');
-jest.mock('../api/socket');
+vi.mock('../api/rest');
+vi.mock('../api/socket');
 
-const mockedFetchSwitches = fetchSwitches as jest.MockedFunction<typeof fetchSwitches>;
-const mockedFetchSensors = fetchSensors as jest.MockedFunction<typeof fetchSensors>;
-const mockedCreateSocket = createSocket as jest.MockedFunction<typeof createSocket>;
+const mockedFetchSwitches = vi.mocked(fetchSwitches);
+const mockedFetchSensors = vi.mocked(fetchSensors);
+const mockedCreateSocket = vi.mocked(createSocket);
 
 const restSwitches = [
   { id: 1, name: 'Kitchen' },
@@ -20,11 +21,11 @@ const restSensors = [{ id: 1, name: 'Livingroom' }];
 const fakeSocket = () => {
   const handlers: Record<string, (payload: any) => void> = {};
   return {
-    on: jest.fn((event: string, callback: (payload: any) => void) => {
+    on: vi.fn((event: string, callback: (payload: any) => void) => {
       handlers[event] = callback;
     }),
-    emit: jest.fn(),
-    disconnect: jest.fn(),
+    emit: vi.fn(),
+    disconnect: vi.fn(),
     server: (event: string, payload: unknown) => act(() => handlers[event](payload)),
     hasHandler: (event: string) => event in handlers,
   };
@@ -33,7 +34,7 @@ const fakeSocket = () => {
 let socket: ReturnType<typeof fakeSocket>;
 
 beforeEach(() => {
-  jest.clearAllMocks();
+  vi.clearAllMocks();
   socket = fakeSocket();
   mockedCreateSocket.mockReturnValue(socket as any);
   mockedFetchSwitches.mockResolvedValue(restSwitches);
