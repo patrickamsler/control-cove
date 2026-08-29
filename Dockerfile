@@ -19,7 +19,7 @@ RUN npm ci --prefix shared
 # "same origin", which is what this image serves. Written to a file rather than
 # passed as ENV so CRA sees it as defined-but-empty rather than absent.
 ARG REACT_APP_SERVER_URL=""
-COPY client/package.json client/package-lock.json ./client/
+COPY client/package.json client/package-lock.json client/.npmrc ./client/
 RUN npm ci --prefix client
 COPY client ./client
 RUN echo "REACT_APP_SERVER_URL=$REACT_APP_SERVER_URL" > client/.env.production \
