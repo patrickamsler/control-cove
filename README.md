@@ -1,9 +1,24 @@
 # Control Cove
 
+[![Tests](https://github.com/patrickamsler/control-cove/actions/workflows/tests.yml/badge.svg)](https://github.com/patrickamsler/control-cove/actions/workflows/tests.yml)
+[![Release](https://github.com/patrickamsler/control-cove/actions/workflows/release.yml/badge.svg)](https://github.com/patrickamsler/control-cove/actions/workflows/release.yml)
+
 A small home-automation dashboard for MQTT devices: read temperature/humidity sensors
 and switch lights on and off from the browser.
 
 Built with TypeScript, React (client) and Node/Express + socket.io (server).
+
+## Table of contents
+
+- [Architecture](#architecture)
+- [Prerequisites](#prerequisites)
+- [Configuration](#configuration)
+- [Devices](#devices)
+- [Setup](#setup)
+- [Commands](#commands)
+- [Deployment](#deployment)
+  - [Releases](#releases)
+- [API](#api)
 
 ## Architecture
 
