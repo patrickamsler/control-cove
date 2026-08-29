@@ -1,9 +1,9 @@
 name: Tests
 
 on:
-  push:
-    branches: [main]
   pull_request:
+  # called by release.yml so the image is only published from a green tree
+  workflow_call:
 
 permissions:
   contents: read

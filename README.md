@@ -121,6 +121,18 @@ defaults it to the empty string, which means "same origin". Point it somewhere e
 (`docker compose -f docker/docker-compose.yaml up --build`); bring up just the broker for
 development with `docker compose -f docker/docker-compose.yaml up mosquitto`.
 
+### Releases
+
+Every push to `main` runs `.github/workflows/release.yml`: a semver git tag is derived from the
+conventional-commit messages since the last tag (`feat:` → minor, `fix:` → patch,
+`BREAKING CHANGE` → major, otherwise patch) and pushed as `vX.Y.Z`. The Docker image is
+built for `linux/amd64` and `linux/arm64` and published to Docker Hub as
+`patrickamsler/control-cove:X.Y.Z` and `patrickamsler/control-cove:latest`.
+
+```bash
+docker run -p 8080:8080 -e MQTT_URL=mqtt://broker:1883 patrickamsler/control-cove:latest
+```
+
 ## API
 
 - `GET /api/switches` — all configured switches with their latest known state
