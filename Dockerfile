@@ -3,7 +3,7 @@
 #   docker buildx build --platform linux/arm64 -t control-cove:latest --load .
 
 # ---------- build ----------
-FROM node:24-slim AS build
+FROM node:22-bookworm-slim AS build
 WORKDIR /app
 
 # shared/ must be installed and built first: both apps resolve
@@ -35,7 +35,7 @@ RUN npm run build --prefix server
 RUN npm prune --omit=dev --prefix server && npm prune --omit=dev --prefix shared
 
 # ---------- runtime ----------
-FROM node:24-slim AS runtime
+FROM node:22-bookworm-slim AS runtime
 ENV NODE_ENV=production \
     HTTP_PORT=8080 \
     LOG_PATH=/var/log/control-cove
