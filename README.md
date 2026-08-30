@@ -28,7 +28,7 @@ REST; it does not connect to MQTT directly.
 
 ```text
 ┌─────────────┐       MQTT       ┌────────┐       REST/HTTP (read)       ┌────────────┐
-│ MQTT broker │ <--------------> │ Server │ -------------------------->  │ Web client │
+│ MQTT broker │ <--------------> │ Server │ ---------------------------> │ Web client │
 └─────────────┘                  │        │ <--------------------------> │            │
                                  └────────┘      WebSocket events        └────────────┘
 ```
