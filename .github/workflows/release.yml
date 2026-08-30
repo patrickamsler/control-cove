@@ -46,7 +46,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
           push: true
           # Defined-but-empty means "same origin", which is what this image
           # serves. See the Deployment section of CLAUDE.md.
