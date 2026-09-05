@@ -35,7 +35,11 @@ export class DeviceService {
   private sensorReadings = new Map<number, SensorReading>();
   private events = new EventEmitter();
 
-  constructor(private commands: SwitchCommandPort) {}
+  constructor(private commands: SwitchCommandPort) {
+    // The MCP layer adds a short-lived listener per in-flight set_switch call, so
+    // the default cap of 10 would produce spurious leak warnings under concurrency.
+    this.events.setMaxListeners(0);
+  }
 
   public getSwitches(): SwitchDto[] {
     return switches.map((config) => this.toSwitchDto(config.id, config.name));
@@ -91,12 +95,20 @@ export class DeviceService {
     this.events.emit('sensor', this.toSensorDto(config.id, config.name));
   }
 
-  public onSwitchChanged(callback: (data: SwitchDto) => void): void {
+  /** Returns a disposer; callers that subscribe for the lifetime of the process can ignore it. */
+  public onSwitchChanged(callback: (data: SwitchDto) => void): () => void {
     this.events.on('switch', callback);
+    return () => {
+      this.events.off('switch', callback);
+    };
   }
 
-  public onSensorChanged(callback: (data: SensorDto) => void): void {
+  /** Returns a disposer; callers that subscribe for the lifetime of the process can ignore it. */
+  public onSensorChanged(callback: (data: SensorDto) => void): () => void {
     this.events.on('sensor', callback);
+    return () => {
+      this.events.off('sensor', callback);
+    };
   }
 
   private toSwitchDto(id: number, name: string): SwitchDto {

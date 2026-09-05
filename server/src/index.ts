@@ -12,6 +12,7 @@ import { WebSocketService } from './ws/WebSocketService';
 import { registerWebSocketHandlers } from './ws/registerWebSocketHandlers';
 import { createApiRouter } from './http/routes';
 import { openApiDocument } from './http/openapi';
+import { createMcpRouter } from './mcp/routes';
 import logger from './logger';
 
 const result = dotenv.config();
@@ -35,6 +36,7 @@ app.use(express.json());
 app.use(API_ROOT, createApiRouter(deviceService));
 app.get('/api-docs.json', (req, res) => res.json(openApiDocument));
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openApiDocument));
+app.use('/mcp', createMcpRouter(deviceService));
 
 // Registered last so /api and /api-docs keep winning. Absent in development,
 // where CRA serves the client on its own port.

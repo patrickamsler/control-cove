@@ -5,6 +5,7 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "tsx watch src/index.ts",
+    "mcp:inspect": "npx @modelcontextprotocol/inspector --server-url http://localhost:3001/mcp --transport http",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -12,6 +13,8 @@
   },
   "dependencies": {
     "@control-cove/shared": "file:../shared",
+    "@modelcontextprotocol/node": "^2.0.0",
+    "@modelcontextprotocol/server": "^2.0.0",
     "cors": "^2.8.5",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",

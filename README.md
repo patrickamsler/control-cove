@@ -19,6 +19,7 @@ Built with TypeScript, React (client) and Node/Express + socket.io (server).
 - [Deployment](#deployment)
   - [Releases](#releases)
 - [API](#api)
+- [MCP](#mcp)
 
 ## Architecture
 
@@ -152,11 +153,42 @@ docker run -p 8080:8080 -e MQTT_URL=mqtt://broker:1883 patrickamsler/control-cov
 - `GET /api/switches` — all configured switches with their latest known state
 - `GET /api/sensors` — all configured sensors with their latest reading
 - `GET /api-docs` — Swagger UI (the OpenAPI document itself is at `/api-docs.json`)
+- `POST /mcp` — Model Context Protocol endpoint (Streamable HTTP), for AI agents
 - socket.io events — emitted: `initial`, `sensor`, `switch`; received: `updateSwitch`
 
 REST and socket.io carry the same DTOs, defined in `shared/`: the endpoints return
 arrays of them, the events carry one device at a time. The OpenAPI schemas are
 generated from those same zod schemas, so the docs cannot drift from the payloads.
+
+## MCP
+
+`/mcp` lets an AI agent control the house. Point a client at it:
+
+```bash
+claude mcp add --transport http control-cove http://localhost:8080/mcp
+```
+
+Tools:
+
+| tool | what it does |
+| --- | --- |
+| `list_switches` | every switch with its id, name and latest known state |
+| `get_switch` | one switch by id |
+| `set_switch` | turns a light on or off, and **waits for the device to confirm** |
+| `list_sensors` | every sensor with its latest temperature and humidity |
+| `get_sensor` | one sensor by id |
+
+Resources: `devices://all`, `switch://{id}`, `sensor://{id}`.
+
+`set_switch` does not report success until the device publishes the new state back over
+MQTT, so an agent is told the truth when a light is offline rather than a hopeful "ok".
+The wait is capped by `MCP_COMMAND_TIMEOUT_MS` (default 5000).
+
+To try the tools by hand, run the official MCP Inspector against a running dev server:
+
+```bash
+npm run mcp:inspect --prefix server
+```
 
 State is kept in memory only; it is empty after a restart until devices publish again,
 and `state` / `temperature` / `humidity` are simply absent until then.
