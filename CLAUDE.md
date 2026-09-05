@@ -87,22 +87,68 @@ Three-package monorepo (no workspaces — each of `shared/`, `client/` and `serv
 ```
                       ┌─ http/  (REST + Swagger) ─┐
 MQTT broker <-> mqtt/ ─┼─ domain/DeviceService ────┼─> client
-                      └─ ws/    (socket.io) ──────┘
-                         mcp/   (planned)
+                      ├─ ws/    (socket.io) ──────┘
+                      └─ mcp/   (agents)
 ```
 
 `server/src` is layered: `domain/` holds the device config and `DeviceService` and
-imports no transport; `mqtt/`, `http/` and `ws/` are adapters over it. A planned
-`mcp/` adapter slots in the same way — it should call `DeviceService`, not reach into
-another adapter.
+imports no transport; `mqtt/`, `http/`, `ws/` and `mcp/` are adapters over it. Each
+calls `DeviceService` and never reaches into another adapter.
 
-Wiring happens in `server/src/index.ts`: services are constructed manually and injected by hand (no DI container). Construction order matters — `MqttDeviceGateway` is the `SwitchCommandPort` that `DeviceService` needs, and `DeviceService` is what the gateway pushes readings into, so the gateway is built first and `gateway.start(deviceService)` is called last. MQTT subscriptions and websocket handlers are registered only inside the `connectToBroker` callback, so nothing is wired until the first successful broker connection. The REST routes are registered unconditionally and serve device names without a broker.
+Wiring happens in `server/src/index.ts`: services are constructed manually and injected by hand (no DI container). Construction order matters — `MqttDeviceGateway` is the `SwitchCommandPort` that `DeviceService` needs, and `DeviceService` is what the gateway pushes readings into, so the gateway is built first and `gateway.start(deviceService)` is called last. MQTT subscriptions and websocket handlers are registered only inside the `connectToBroker` callback, so nothing is wired until the first successful broker connection. The REST routes and the MCP router are registered unconditionally and serve device names without a broker.
 
 - `mqtt/MqttClient` — single mqtt client, one listener per topic (later `subscribeToTopic` on the same topic replaces the previous listener). Sessions are clean, so it tracks `connectedBefore` and re-subscribes all stored topics on reconnect rather than re-running the `onConnect` wiring.
 - `mqtt/MqttDeviceGateway` — parses broker payloads with the zod schemas in `mqtt/payloads.ts` and calls `DeviceService.applySensorReading` / `applySwitchState`; implements `SwitchCommandPort` to publish `on`/`off` to a switch's `commandTopic`.
 - `domain/DeviceService` — merges the static device config with the latest known state and emits `switch` / `sensor` change callbacks. Nothing is persisted; state is empty after restart until devices publish. Unknown values stay **absent** from the DTOs rather than null.
 - `ws/registerWebSocketHandlers` — emits `initial` to each new socket, fans `DeviceService` changes out as `switch` / `sensor`, and validates inbound `updateSwitch` payloads.
 - `http/routes` — `GET /api/switches`, `GET /api/sensors`; `http/openapi.ts` builds the OpenAPI document served at `/api-docs` (UI) and `/api-docs.json`.
+- `mcp/registerMcpHandlers` — the five agent-facing tools (`list_switches`, `get_switch`, `set_switch`, `list_sensors`, `get_sensor`) plus read-only resources (`devices://all`, `switch://{id}`, `sensor://{id}`); `mcp/routes.ts` mounts them on Streamable HTTP at `/mcp`. There is no UI in the repo — `npm run mcp:inspect --prefix server` launches the official MCP Inspector against it.
+
+**The MCP layer answers, where the WebSocket layer drops.** Every other adapter follows the
+same rule for bad input — `safeParse`, `logger.error`, `return` — because a malformed socket
+frame has no one waiting on it. An MCP tool call always has an agent waiting, so problems come
+back as `isError` results it can act on (`No switch with id 999. Call list_switches to see the
+available ids.`) rather than silently doing nothing. The log line is kept as well.
+
+**`set_switch` waits for the device.** `DeviceService.setSwitch` is fire-and-forget: it
+publishes to the `commandTopic` and the state map only moves when the device reports back on its
+`stateTopic`. Returning "ok" there would tell an agent a light changed when it may be unplugged,
+so `set_switch` subscribes *before* commanding, then races the confirmation against
+`MCP_COMMAND_TIMEOUT_MS` (default 5000). On timeout it returns an error that states exactly what
+is known — the command was published, the outcome is not. This is why `onSwitchChanged` /
+`onSensorChanged` return a disposer, and why `DeviceService` calls `setMaxListeners(0)`:
+concurrent tool calls each hold a short-lived listener.
+
+`mcp/schemas.ts` holds the tool input schemas and is server-internal, for the same reason
+`mqtt/payloads.ts` is — the tool surface an agent sees is its own contract, not a mirror of the
+browser API. Tool *outputs* do reuse the shared DTOs. Every field carries a `.describe()`; that
+text is what the agent reads to choose arguments, so it is load bearing.
+
+The transport at `/mcp` is **stateless**: `sessionIdGenerator: undefined`, and a fresh
+`McpServer` per request. `enableJsonResponse: true` makes it answer with plain JSON instead of
+SSE — no server-initiated notifications are sent, so the stream buys nothing, and a plain body
+is far easier to read from `curl`. Because `index.ts` mounts a fully permissive `cors()`,
+`/mcp` is wrapped in `originValidation` — without it any page on the LAN could toggle the
+user's lights from a browser. Requests with no `Origin` header (every real MCP client, the
+Inspector included) pass; `MCP_ALLOWED_ORIGINS` extends the list beyond localhost.
+
+**There is deliberately no MCP UI in this repo.** `/api-docs` can embed Swagger because
+`swagger-ui-dist` is a pre-built static bundle; MCP has no equivalent. The official
+`@modelcontextprotocol/inspector` is a standalone CLI app (it pulls vite, react, ink and the
+native `@napi-rs/keyring`, which would not survive the arm64/armv7 image), its old
+`inspector-client` split package is deprecated, and the mountable third-party option carries
+React and a dozen other peers. So the Inspector runs as a dev script instead:
+`npm run mcp:inspect --prefix server`, which is `npx @modelcontextprotocol/inspector
+--server-url http://localhost:3001/mcp --transport http` (the port is `server/.env`'s dev
+`HTTP_PORT`; the image uses 8080). A hand-written page was tried and removed — it was ~340
+lines to maintain against a moving spec.
+
+`server/tsconfig.json` uses `"module": "node16"` rather than `"commonjs"` because the
+`@modelcontextprotocol/*` packages describe themselves only through an `exports` map, which
+TypeScript's implicit `node10` resolution cannot read. Emit is unchanged (CommonJS, since
+`server/package.json` has no `"type": "module"`); the `require` condition supplies the `.d.cts`
+types. The one visible consequence is that dynamic `import()` specifiers now need explicit
+`.js` extensions, which is why the `vi.mock` one-liners read `'../test/fixtures.js'`.
 
 **DTOs are shared, not duplicated.** `shared/` exports zod schemas and the types inferred from them; both packages import from `@control-cove/shared`. Add or change a field there and both sides fail to compile until they agree — there is no manual sync step.
 
@@ -110,7 +156,7 @@ Wiring happens in `server/src/index.ts`: services are constructed manually and i
 
 **Devices are configured, not discovered.** `server/src/domain/sensor-config.json` (id, name, statusTopic) and `switch-config.json` (id, name, commandTopic, stateTopic) hold the raw device lists; `domain/devices.ts` loads both, validates them with zod at startup (unique ids, non-empty topics) and exports typed `switches` / `sensors` arrays plus `findSwitchById(id)` / `findSensorById(id)`. Everything imports from `devices.ts`, never the JSON files directly. Adding a device means editing the JSON files; the numeric `id` is the key used across REST, websocket events and the state maps, and is only unique **within** a device type — switch 1 and sensor 1 are different devices. Switch state topics carry the plain strings `on`/`off` (anything else is logged and ignored); sensor status topics carry JSON with numeric `temperature`/`humidity` plus an optional `device_id` (malformed payloads are logged and dropped).
 
-`device_id` is **server-internal**: the sensor payload's value (falling back to the topic when the device does not send one) is stored on `DeviceService`'s `SensorReading` and read back with `getSensorReading(id)`, for logging and the planned MCP layer. It is deliberately absent from `SensorDto`, so it never reaches the browser over REST or the socket. Switches have no `device_id` — the old value was just a substring of `stateTopic`, which `findSwitchById(id)` already provides.
+`device_id` is **server-internal**: the sensor payload's value (falling back to the topic when the device does not send one) is stored on `DeviceService`'s `SensorReading` and read back with `getSensorReading(id)`, for logging and for the MCP layer, where `get_sensor` returns it. It is deliberately absent from `SensorDto`, so it never reaches the browser over REST or the socket. Switches have no `device_id` — the old value was just a substring of `stateTopic`, which `findSwitchById(id)` already provides.
 
 **Client structure**: `api/` (REST fetch + socket factory, both reading `api/config.ts`), `hooks/useDevices.ts` (all device state — REST snapshot, socket `initial`, live updates, `setSwitch`), and presentational components. `App.tsx` holds layout only. REST responses are validated with the shared schemas, so a server/client mismatch surfaces as an error rather than as `undefined` deep in a component.
 
@@ -145,7 +191,7 @@ image carries no `.env`.
 
 Env files are gitignored; `.env` and `.env.production` exist in both `client/` and `server/`.
 
-- `server/.env`: `HTTP_PORT`, `MQTT_URL`, `MQTT_USERNAME`, `MQTT_PASSWORD`, `NODE_ENV`, `LOG_PATH`, optional `LOG_LEVEL`.
+- `server/.env`: `HTTP_PORT`, `MQTT_URL`, `MQTT_USERNAME`, `MQTT_PASSWORD`, `NODE_ENV`, `LOG_PATH`, optional `LOG_LEVEL`, optional `MCP_ALLOWED_ORIGINS` (comma-separated hostnames allowed to call `/mcp` from a browser; localhost is always allowed) and optional `MCP_COMMAND_TIMEOUT_MS` (default 5000).
 - `client/.env`: `VITE_SERVER_URL` — `api/config.ts` throws at import if unset. Vite only
   exposes variables prefixed `VITE_`.
 

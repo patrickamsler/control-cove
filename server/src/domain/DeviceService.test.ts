@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DeviceService, SwitchCommandPort } from './DeviceService';
 
 // Use the test fixtures instead of the real device configuration.
-vi.mock('../domain/devices', async () => (await import('../test/fixtures')).devicesModuleMock());
+vi.mock('../domain/devices', async () => (await import('../test/fixtures.js')).devicesModuleMock());
 
 const setup = () => {
   const commands: SwitchCommandPort = { sendSwitchCommand: vi.fn() };

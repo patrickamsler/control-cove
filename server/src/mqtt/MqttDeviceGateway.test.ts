@@ -3,7 +3,7 @@ import { DeviceService } from '../domain/DeviceService';
 import { MqttClient } from './MqttClient';
 import { MqttDeviceGateway } from './MqttDeviceGateway';
 
-vi.mock('../domain/devices', async () => (await import('../test/fixtures')).devicesModuleMock());
+vi.mock('../domain/devices', async () => (await import('../test/fixtures.js')).devicesModuleMock());
 
 const setup = () => {
   const publishMessage = vi.fn();
