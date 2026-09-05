@@ -5,7 +5,7 @@ import { createApiRouter } from './routes';
 import { SensorController } from './SensorController';
 import { SwitchController } from './SwitchController';
 
-vi.mock('../domain/devices', async () => (await import('../test/fixtures')).devicesModuleMock());
+vi.mock('../domain/devices', async () => (await import('../test/fixtures.js')).devicesModuleMock());
 
 const request = {} as Request;
 const response = () => ({ json: vi.fn() } as unknown as Response & { json: ReturnType<typeof vi.fn> });

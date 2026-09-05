@@ -14,7 +14,7 @@ const validSensors = [
 const loadDevices = (switchConfig: unknown = validSwitches, sensorConfig: unknown = validSensors) => {
   vi.doMock('./switch-config.json', () => ({ default: switchConfig }));
   vi.doMock('./sensor-config.json', () => ({ default: sensorConfig }));
-  return import('./devices');
+  return import('./devices.js');
 };
 
 beforeEach(() => {
@@ -105,6 +105,6 @@ describe('devices config validation', () => {
 
 describe('the real device configuration shipped in the repo', () => {
   it('loads without a validation error', async () => {
-    await expect(import('./devices')).resolves.toBeDefined();
+    await expect(import('./devices.js')).resolves.toBeDefined();
   });
 });

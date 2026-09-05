@@ -3,7 +3,7 @@ import { DeviceService, SwitchCommandPort } from '../domain/DeviceService';
 import { WebSocketService } from './WebSocketService';
 import { registerWebSocketHandlers } from './registerWebSocketHandlers';
 
-vi.mock('../domain/devices', async () => (await import('../test/fixtures')).devicesModuleMock());
+vi.mock('../domain/devices', async () => (await import('../test/fixtures.js')).devicesModuleMock());
 
 const setup = () => {
   const emit = vi.fn();
