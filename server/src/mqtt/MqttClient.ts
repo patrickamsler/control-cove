@@ -1,8 +1,7 @@
-import mqtt, { MqttClient as BrokerClient } from 'mqtt';
-import logger from '../logger';
+import mqtt, { MqttClient as BrokerClient } from "mqtt";
+import logger from "../logger";
 
 export class MqttClient {
-
   private client?: BrokerClient;
   private listeners: { [topic: string]: (message: string) => void } = {};
   private connectedBefore = false;
@@ -10,7 +9,7 @@ export class MqttClient {
   connectToBroker = (onConnect?: () => void) => {
     if (!this.client) {
       if (!process.env.MQTT_USERNAME || !process.env.MQTT_PASSWORD) {
-        throw new Error('Broker username and password are required');
+        throw new Error("Broker username and password are required");
       }
       const options = {
         username: process.env.MQTT_USERNAME,
@@ -19,8 +18,8 @@ export class MqttClient {
       try {
         const url = process.env.MQTT_URL as string;
         this.client = mqtt.connect(url, options);
-        this.client.on('connect', () => {
-          logger.info('connected to MQTT broker')
+        this.client.on("connect", () => {
+          logger.info("connected to MQTT broker");
           if (this.connectedBefore) {
             this.resubscribeAll();
             return;
@@ -30,13 +29,15 @@ export class MqttClient {
             onConnect();
           }
         });
-        this.client.on('message', (topic, message) => {
+        this.client.on("message", (topic, message) => {
           if (this.listeners[topic]) {
-            logger.info(`Received message on topic ${topic}: ${message.toString()}`);
+            logger.info(
+              `Received message on topic ${topic}: ${message.toString()}`,
+            );
             this.listeners[topic](message.toString());
           }
         });
-        this.client.on('error', (error) => {
+        this.client.on("error", (error) => {
           logger.error(`MQTT connection error: ${error}`);
         });
       } catch (error) {
@@ -53,7 +54,9 @@ export class MqttClient {
 
   publishMessage = (topic: string, message: string) => {
     if (!this.client) {
-      logger.error(`Cannot publish to topic ${topic}: MQTT client is not initialized`);
+      logger.error(
+        `Cannot publish to topic ${topic}: MQTT client is not initialized`,
+      );
       return;
     }
     logger.info(`Publishing message to topic ${topic}: ${message}`);
@@ -63,16 +66,18 @@ export class MqttClient {
         logger.error(`Failed to publish to topic ${topic}: ${err}`);
       }
     });
-  }
+  };
 
   subscribeToTopic = (topic: string, onMessage: (message: string) => void) => {
     if (!this.client) {
-      logger.error(`Cannot subscribe to topic ${topic}: MQTT client is not initialized`);
+      logger.error(
+        `Cannot subscribe to topic ${topic}: MQTT client is not initialized`,
+      );
       return;
     }
     this.listeners[topic] = onMessage; // only store the latest listener
     this.subscribe(topic);
-  }
+  };
 
   unsubscribeFromTopic = (topic: string) => {
     delete this.listeners[topic]; // remove the listener
@@ -86,10 +91,12 @@ export class MqttClient {
         logger.info(`Successfully unsubscribed from topic ${topic}`);
       }
     });
-  }
+  };
 
   private subscribe = (topic: string) => {
-    logger.info(`Subscribing to topic ${topic} ${Object.keys(this.listeners).length}`);
+    logger.info(
+      `Subscribing to topic ${topic} ${Object.keys(this.listeners).length}`,
+    );
     this.client!.subscribe(topic, (err) => {
       if (err) {
         logger.error(`Failed to subscribe to topic ${topic}: ${err}`);
@@ -97,7 +104,7 @@ export class MqttClient {
         logger.info(`Successfully subscribed to topic ${topic}`);
       }
     });
-  }
+  };
 
   // Subscriptions are lost on reconnect (clean session), so restore them.
   private resubscribeAll = () => {
@@ -107,5 +114,5 @@ export class MqttClient {
     }
     logger.info(`Restoring ${topics.length} subscription(s) after reconnect`);
     topics.forEach((topic) => this.subscribe(topic));
-  }
+  };
 }

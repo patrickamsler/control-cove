@@ -113,7 +113,7 @@ available ids.`) rather than silently doing nothing. The log line is kept as wel
 **`set_switch` waits for the device.** `DeviceService.setSwitch` is fire-and-forget: it
 publishes to the `commandTopic` and the state map only moves when the device reports back on its
 `stateTopic`. Returning "ok" there would tell an agent a light changed when it may be unplugged,
-so `set_switch` subscribes *before* commanding, then races the confirmation against
+so `set_switch` subscribes _before_ commanding, then races the confirmation against
 `MCP_COMMAND_TIMEOUT_MS` (default 5000). On timeout it returns an error that states exactly what
 is known — the command was published, the outcome is not. This is why `onSwitchChanged` /
 `onSensorChanged` return a disposer, and why `DeviceService` calls `setMaxListeners(0)`:
@@ -121,7 +121,7 @@ concurrent tool calls each hold a short-lived listener.
 
 `mcp/schemas.ts` holds the tool input schemas and is server-internal, for the same reason
 `mqtt/payloads.ts` is — the tool surface an agent sees is its own contract, not a mirror of the
-browser API. Tool *outputs* do reuse the shared DTOs. Every field carries a `.describe()`; that
+browser API. Tool _outputs_ do reuse the shared DTOs. Every field carries a `.describe()`; that
 text is what the agent reads to choose arguments, so it is load bearing.
 
 The transport at `/mcp` is **stateless**: `sessionIdGenerator: undefined`, and a fresh
@@ -179,7 +179,7 @@ The runtime stage preserves the `/app/shared` ↔ `/app/server` layout, because
 `server/node_modules/@control-cove/shared` is a **symlink** to `../../../shared` created by
 the `file:` dependency; `COPY` dereferences symlinks, so the Dockerfile re-creates it
 explicitly. `npm ci --prefix shared` builds `shared` on its own via its `prepare` script,
-and `npm prune --omit=dev` runs only *after* every build, since that build needs its
+and `npm prune --omit=dev` runs only _after_ every build, since that build needs its
 devDep `typescript`.
 
 `logger.ts` writes to the console unconditionally (not only in development) so `docker logs`

@@ -1,21 +1,21 @@
-import { vi } from 'vitest';
-import { act, renderHook, waitFor } from '@testing-library/react';
-import { useDevices } from './useDevices';
-import { createSocket } from '../api/socket';
-import { fetchSensors, fetchSwitches } from '../api/rest';
+import { vi } from "vitest";
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { useDevices } from "./useDevices";
+import { createSocket } from "../api/socket";
+import { fetchSensors, fetchSwitches } from "../api/rest";
 
-vi.mock('../api/rest');
-vi.mock('../api/socket');
+vi.mock("../api/rest");
+vi.mock("../api/socket");
 
 const mockedFetchSwitches = vi.mocked(fetchSwitches);
 const mockedFetchSensors = vi.mocked(fetchSensors);
 const mockedCreateSocket = vi.mocked(createSocket);
 
 const restSwitches = [
-  { id: 1, name: 'Kitchen' },
-  { id: 2, name: 'Bedroom', state: false },
+  { id: 1, name: "Kitchen" },
+  { id: 2, name: "Bedroom", state: false },
 ];
-const restSensors = [{ id: 1, name: 'Livingroom' }];
+const restSensors = [{ id: 1, name: "Livingroom" }];
 
 // Stands in for the socket: records handlers so tests can drive server events.
 const fakeSocket = () => {
@@ -26,7 +26,8 @@ const fakeSocket = () => {
     }),
     emit: vi.fn(),
     disconnect: vi.fn(),
-    server: (event: string, payload: unknown) => act(() => handlers[event](payload)),
+    server: (event: string, payload: unknown) =>
+      act(() => handlers[event](payload)),
     hasHandler: (event: string) => event in handlers,
   };
 };
@@ -41,8 +42,8 @@ beforeEach(() => {
   mockedFetchSensors.mockResolvedValue(restSensors);
 });
 
-describe('the initial load', () => {
-  it('starts out loading with no devices', async () => {
+describe("the initial load", () => {
+  it("starts out loading with no devices", async () => {
     const { result } = renderHook(() => useDevices());
 
     expect(result.current.loading).toBe(true);
@@ -52,7 +53,7 @@ describe('the initial load', () => {
     await waitFor(() => expect(result.current.loading).toBe(false));
   });
 
-  it('exposes the devices returned by the REST endpoints', async () => {
+  it("exposes the devices returned by the REST endpoints", async () => {
     const { result } = renderHook(() => useDevices());
 
     await waitFor(() => expect(result.current.loading).toBe(false));
@@ -62,72 +63,82 @@ describe('the initial load', () => {
     expect(result.current.error).toBeNull();
   });
 
-  it('reports a failed request as an error instead of loading forever', async () => {
-    mockedFetchSwitches.mockRejectedValue(new Error('HTTP error! status: 500'));
+  it("reports a failed request as an error instead of loading forever", async () => {
+    mockedFetchSwitches.mockRejectedValue(new Error("HTTP error! status: 500"));
 
     const { result } = renderHook(() => useDevices());
 
-    await waitFor(() => expect(result.current.error).toBe('HTTP error! status: 500'));
+    await waitFor(() =>
+      expect(result.current.error).toBe("HTTP error! status: 500"),
+    );
     expect(result.current.loading).toBe(false);
   });
 });
 
-describe('socket updates', () => {
-  it('applies the initial snapshot without waiting for the REST response', async () => {
+describe("socket updates", () => {
+  it("applies the initial snapshot without waiting for the REST response", async () => {
     // A REST request that never settles, so only the socket can supply the data.
     mockedFetchSwitches.mockReturnValue(new Promise(() => {}));
     mockedFetchSensors.mockReturnValue(new Promise(() => {}));
     const { result } = renderHook(() => useDevices());
 
-    socket.server('initial', { switches: restSwitches, sensors: restSensors });
+    socket.server("initial", { switches: restSwitches, sensors: restSensors });
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.switches).toEqual(restSwitches);
   });
 
-  it('does not let a late REST response overwrite the socket snapshot', async () => {
-    const live = [{ id: 1, name: 'Kitchen', state: true }, { id: 2, name: 'Bedroom', state: true }];
+  it("does not let a late REST response overwrite the socket snapshot", async () => {
+    const live = [
+      { id: 1, name: "Kitchen", state: true },
+      { id: 2, name: "Bedroom", state: true },
+    ];
     const { result } = renderHook(() => useDevices());
 
-    socket.server('initial', { switches: live, sensors: restSensors });
+    socket.server("initial", { switches: live, sensors: restSensors });
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(result.current.switches).toEqual(live);
   });
 
-  it('replaces only the switch named in a switch event', async () => {
+  it("replaces only the switch named in a switch event", async () => {
     const { result } = renderHook(() => useDevices());
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    socket.server('switch', { id: 2, name: 'Bedroom', state: true });
+    socket.server("switch", { id: 2, name: "Bedroom", state: true });
 
     expect(result.current.switches).toEqual([
-      { id: 1, name: 'Kitchen' },
-      { id: 2, name: 'Bedroom', state: true },
+      { id: 1, name: "Kitchen" },
+      { id: 2, name: "Bedroom", state: true },
     ]);
   });
 
-  it('replaces only the sensor named in a sensor event', async () => {
+  it("replaces only the sensor named in a sensor event", async () => {
     const { result } = renderHook(() => useDevices());
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    socket.server('sensor', { id: 1, name: 'Livingroom', temperature: 21.5, humidity: 48 });
+    socket.server("sensor", {
+      id: 1,
+      name: "Livingroom",
+      temperature: 21.5,
+      humidity: 48,
+    });
 
     expect(result.current.sensors).toEqual([
-      { id: 1, name: 'Livingroom', temperature: 21.5, humidity: 48 },
+      { id: 1, name: "Livingroom", temperature: 21.5, humidity: 48 },
     ]);
   });
 
-  it('ignores an event for an unknown device id', async () => {
+  it("ignores an event for an unknown device id", async () => {
     const { result } = renderHook(() => useDevices());
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    socket.server('switch', { id: 999, name: 'Ghost', state: true });
+    socket.server("switch", { id: 999, name: "Ghost", state: true });
 
     expect(result.current.switches).toEqual(restSwitches);
   });
 
-  it('disconnects the socket on unmount', async () => {
+  it("disconnects the socket on unmount", async () => {
     const { result, unmount } = renderHook(() => useDevices());
     await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -137,17 +148,20 @@ describe('socket updates', () => {
   });
 });
 
-describe('setSwitch', () => {
-  it('emits an updateSwitch event', async () => {
+describe("setSwitch", () => {
+  it("emits an updateSwitch event", async () => {
     const { result } = renderHook(() => useDevices());
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     act(() => result.current.setSwitch(2, true));
 
-    expect(socket.emit).toHaveBeenCalledWith('updateSwitch', { id: 2, state: true });
+    expect(socket.emit).toHaveBeenCalledWith("updateSwitch", {
+      id: 2,
+      state: true,
+    });
   });
 
-  it('does not apply the new state optimistically', async () => {
+  it("does not apply the new state optimistically", async () => {
     const { result } = renderHook(() => useDevices());
     await waitFor(() => expect(result.current.loading).toBe(false));
 

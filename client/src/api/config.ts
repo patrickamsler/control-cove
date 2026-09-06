@@ -8,7 +8,9 @@
 const serverUrl = import.meta.env.VITE_SERVER_URL;
 
 if (serverUrl === undefined) {
-  throw new Error('VITE_SERVER_URL is not set (use "" to talk to the serving origin)');
+  throw new Error(
+    'VITE_SERVER_URL is not set (use "" to talk to the serving origin)',
+  );
 }
 
 export const SERVER_URL: string = serverUrl;

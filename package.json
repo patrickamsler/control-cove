@@ -10,11 +10,14 @@
     "start:server": "npm run dev --prefix server",
     "start:shared": "npm run dev --prefix shared",
     "start": "concurrently \"npm run start:shared\" \"npm run start:client\" \"npm run start:server\"",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "npm run test:client && npm run test:server",
     "test:client": "npm test --prefix client",
     "test:server": "npm test --prefix server"
   },
   "devDependencies": {
-    "concurrently": "^10.0.5"
+    "concurrently": "^10.0.5",
+    "prettier": "^3.9.6"
   }
 }

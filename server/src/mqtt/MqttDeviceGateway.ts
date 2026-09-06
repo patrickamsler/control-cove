@@ -1,15 +1,18 @@
-import { DeviceService, SensorReading, SwitchCommandPort } from '../domain/DeviceService';
-import { findSwitchById, sensors, switches } from '../domain/devices';
-import { MqttClient } from './MqttClient';
-import { sensorPayloadSchema, switchPayloadSchema } from './payloads';
-import logger from '../logger';
+import {
+  DeviceService,
+  SensorReading,
+  SwitchCommandPort,
+} from "../domain/DeviceService";
+import { findSwitchById, sensors, switches } from "../domain/devices";
+import { MqttClient } from "./MqttClient";
+import { sensorPayloadSchema, switchPayloadSchema } from "./payloads";
+import logger from "../logger";
 
 /**
  * Translates between the broker and the domain: parses inbound device payloads
  * into readings, and turns outbound switch commands into published messages.
  */
 export class MqttDeviceGateway implements SwitchCommandPort {
-
   constructor(private mqttClient: MqttClient) {}
 
   /**
@@ -30,10 +33,12 @@ export class MqttDeviceGateway implements SwitchCommandPort {
       this.mqttClient.subscribeToTopic(switchConfig.stateTopic, (message) => {
         const payload = switchPayloadSchema.safeParse(message);
         if (!payload.success) {
-          logger.error(`Ignoring unexpected state on topic ${switchConfig.stateTopic}: ${message}`);
+          logger.error(
+            `Ignoring unexpected state on topic ${switchConfig.stateTopic}: ${message}`,
+          );
           return;
         }
-        deviceService.applySwitchState(switchConfig.id, payload.data === 'on');
+        deviceService.applySwitchState(switchConfig.id, payload.data === "on");
       });
     });
   }
@@ -44,10 +49,16 @@ export class MqttDeviceGateway implements SwitchCommandPort {
       logger.error(`Cannot send command to unknown switch id ${switchId}`);
       return;
     }
-    this.mqttClient.publishMessage(switchConfig.commandTopic, state ? 'on' : 'off');
+    this.mqttClient.publishMessage(
+      switchConfig.commandTopic,
+      state ? "on" : "off",
+    );
   }
 
-  private parseSensorPayload(topic: string, message: string): SensorReading | undefined {
+  private parseSensorPayload(
+    topic: string,
+    message: string,
+  ): SensorReading | undefined {
     let json: unknown;
     try {
       json = JSON.parse(message);
@@ -57,7 +68,9 @@ export class MqttDeviceGateway implements SwitchCommandPort {
     }
     const payload = sensorPayloadSchema.safeParse(json);
     if (!payload.success) {
-      logger.error(`Ignoring payload without numeric temperature/humidity on topic ${topic}: ${message}`);
+      logger.error(
+        `Ignoring payload without numeric temperature/humidity on topic ${topic}: ${message}`,
+      );
       return undefined;
     }
     const { temperature, humidity, device_id } = payload.data;

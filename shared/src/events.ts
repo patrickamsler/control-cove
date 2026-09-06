@@ -1,5 +1,10 @@
-import { z } from 'zod';
-import { SensorDto, SwitchDto, sensorListSchema, switchListSchema } from './devices.js';
+import { z } from "zod";
+import {
+  SensorDto,
+  SwitchDto,
+  sensorListSchema,
+  switchListSchema,
+} from "./devices.js";
 
 /** Payload of the `updateSwitch` event the client sends to control a switch. */
 export const switchUpdateSchema = z.object({
