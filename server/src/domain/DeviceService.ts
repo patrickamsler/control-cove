@@ -1,7 +1,7 @@
-import { EventEmitter } from 'events';
-import { SensorDto, SwitchDto } from '@control-cove/shared';
-import { findSensorById, findSwitchById, sensors, switches } from './devices';
-import logger from '../logger';
+import { EventEmitter } from "events";
+import { SensorDto, SwitchDto } from "@control-cove/shared";
+import { findSensorById, findSwitchById, sensors, switches } from "./devices";
+import logger from "../logger";
 
 /**
  * How the domain reaches the devices. Implemented by the MQTT layer so that
@@ -30,7 +30,6 @@ export interface SensorReading {
  * again. Unknown values stay *absent* from the DTOs rather than being nulled.
  */
 export class DeviceService {
-
   private switchStates = new Map<number, boolean>();
   private sensorReadings = new Map<number, SensorReading>();
   private events = new EventEmitter();
@@ -81,7 +80,7 @@ export class DeviceService {
       return;
     }
     this.switchStates.set(id, state);
-    this.events.emit('switch', this.toSwitchDto(config.id, config.name));
+    this.events.emit("switch", this.toSwitchDto(config.id, config.name));
   }
 
   /** Inbound: a sensor reported a reading. */
@@ -92,22 +91,22 @@ export class DeviceService {
       return;
     }
     this.sensorReadings.set(id, reading);
-    this.events.emit('sensor', this.toSensorDto(config.id, config.name));
+    this.events.emit("sensor", this.toSensorDto(config.id, config.name));
   }
 
   /** Returns a disposer; callers that subscribe for the lifetime of the process can ignore it. */
   public onSwitchChanged(callback: (data: SwitchDto) => void): () => void {
-    this.events.on('switch', callback);
+    this.events.on("switch", callback);
     return () => {
-      this.events.off('switch', callback);
+      this.events.off("switch", callback);
     };
   }
 
   /** Returns a disposer; callers that subscribe for the lifetime of the process can ignore it. */
   public onSensorChanged(callback: (data: SensorDto) => void): () => void {
-    this.events.on('sensor', callback);
+    this.events.on("sensor", callback);
     return () => {
-      this.events.off('sensor', callback);
+      this.events.off("sensor", callback);
     };
   }
 
@@ -122,6 +121,11 @@ export class DeviceService {
       return { id, name };
     }
     // deviceId is intentionally dropped here — it stays server-internal.
-    return { id, name, temperature: reading.temperature, humidity: reading.humidity };
+    return {
+      id,
+      name,
+      temperature: reading.temperature,
+      humidity: reading.humidity,
+    };
   }
 }

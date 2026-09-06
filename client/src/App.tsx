@@ -1,13 +1,13 @@
-import React from 'react';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { Box, CssBaseline, Grid } from '@mui/material';
-import LightControl from './components/LightControl/LightControl';
-import SensorDisplay from './components/SensorDisplay/SensorDisplay';
-import { useDevices } from './hooks/useDevices';
+import React from "react";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { Box, CssBaseline, Grid } from "@mui/material";
+import LightControl from "./components/LightControl/LightControl";
+import SensorDisplay from "./components/SensorDisplay/SensorDisplay";
+import { useDevices } from "./hooks/useDevices";
 
 const theme = createTheme({
   palette: {
-    mode: 'dark',
+    mode: "dark",
   },
 });
 
@@ -22,25 +22,20 @@ const App = () => {
   }
 
   return (
-      <ThemeProvider theme={theme}>
-        <CssBaseline/>
-        <Box sx={{ p: 2 }}>
-          <Grid container spacing={2}>
-            <Grid size={6}>
-              <LightControl
-                  switches={switches}
-                  actionHandler={setSwitch}
-              />
-            </Grid>
-            <Grid size={6}>
-              <SensorDisplay
-                  sensors={sensors}
-              />
-            </Grid>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Box sx={{ p: 2 }}>
+        <Grid container spacing={2}>
+          <Grid size={6}>
+            <LightControl switches={switches} actionHandler={setSwitch} />
           </Grid>
-        </Box>
-      </ThemeProvider>
+          <Grid size={6}>
+            <SensorDisplay sensors={sensors} />
+          </Grid>
+        </Grid>
+      </Box>
+    </ThemeProvider>
   );
-}
+};
 
 export default App;

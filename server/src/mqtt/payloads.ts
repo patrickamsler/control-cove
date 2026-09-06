@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 /**
  * Sensor status topics carry JSON. `device_id` is the identifier the device
@@ -14,6 +14,6 @@ export const sensorPayloadSchema = z.object({
 });
 
 /** Switch state topics carry the plain strings `on` / `off`. */
-export const switchPayloadSchema = z.enum(['on', 'off']);
+export const switchPayloadSchema = z.enum(["on", "off"]);
 
 export type SensorPayload = z.infer<typeof sensorPayloadSchema>;

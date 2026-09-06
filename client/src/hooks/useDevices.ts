@@ -1,11 +1,15 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { SensorDto, SwitchDto } from '@control-cove/shared';
-import { fetchSensors, fetchSwitches } from '../api/rest';
-import { AppSocket, createSocket } from '../api/socket';
+import { useCallback, useEffect, useRef, useState } from "react";
+import { SensorDto, SwitchDto } from "@control-cove/shared";
+import { fetchSensors, fetchSwitches } from "../api/rest";
+import { AppSocket, createSocket } from "../api/socket";
 
 /** Replaces the entry with the same id, leaving the rest untouched. */
-const replaceById = <T extends { id: number }>(devices: T[] | null, update: T): T[] | null =>
-  devices && devices.map((device) => (device.id === update.id ? update : device));
+const replaceById = <T extends { id: number }>(
+  devices: T[] | null,
+  update: T,
+): T[] | null =>
+  devices &&
+  devices.map((device) => (device.id === update.id ? update : device));
 
 /**
  * Owns the device state: a REST snapshot on mount, then live socket updates.
@@ -44,12 +48,19 @@ export const useDevices = () => {
     const socket = createSocket();
     socketRef.current = socket;
 
-    socket.on('initial', ({ switches: initialSwitches, sensors: initialSensors }) => {
-      setSwitches(initialSwitches);
-      setSensors(initialSensors);
-    });
-    socket.on('switch', (update) => setSwitches((current) => replaceById(current, update)));
-    socket.on('sensor', (update) => setSensors((current) => replaceById(current, update)));
+    socket.on(
+      "initial",
+      ({ switches: initialSwitches, sensors: initialSensors }) => {
+        setSwitches(initialSwitches);
+        setSensors(initialSensors);
+      },
+    );
+    socket.on("switch", (update) =>
+      setSwitches((current) => replaceById(current, update)),
+    );
+    socket.on("sensor", (update) =>
+      setSensors((current) => replaceById(current, update)),
+    );
 
     return () => {
       socketRef.current = null;
@@ -59,10 +70,10 @@ export const useDevices = () => {
 
   const setSwitch = useCallback((id: number, state: boolean) => {
     if (!socketRef.current) {
-      console.error('Socket not initialized');
+      console.error("Socket not initialized");
       return;
     }
-    socketRef.current.emit('updateSwitch', { id, state });
+    socketRef.current.emit("updateSwitch", { id, state });
   }, []);
 
   return {

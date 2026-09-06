@@ -1,5 +1,5 @@
-import { Request, Response } from 'express';
-import { DeviceService } from '../domain/DeviceService';
+import { Request, Response } from "express";
+import { DeviceService } from "../domain/DeviceService";
 
 export class SensorController {
   constructor(private deviceService: DeviceService) {}

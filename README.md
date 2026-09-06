@@ -45,8 +45,8 @@ types consistent.
 
 ## Prerequisites
 
-* Node.js and npm
-* An MQTT broker (for local development: `docker compose -f docker/docker-compose.yaml up`
+- Node.js and npm
+- An MQTT broker (for local development: `docker compose -f docker/docker-compose.yaml up`
   starts Mosquitto on 1883 MQTT / 9001 WebSocket)
 
 ## Configuration
@@ -54,6 +54,7 @@ types consistent.
 Create the env files (they are gitignored):
 
 `server/.env`
+
 ```
 HTTP_PORT=3001
 MQTT_URL=mqtt://192.168.1.2:1883
@@ -65,6 +66,7 @@ LOG_LEVEL=info
 ```
 
 `client/.env`
+
 ```
 VITE_SERVER_URL=http://localhost:3001
 ```
@@ -170,13 +172,13 @@ claude mcp add --transport http control-cove http://localhost:8080/mcp
 
 Tools:
 
-| tool | what it does |
-| --- | --- |
-| `list_switches` | every switch with its id, name and latest known state |
-| `get_switch` | one switch by id |
-| `set_switch` | turns a light on or off, and **waits for the device to confirm** |
-| `list_sensors` | every sensor with its latest temperature and humidity |
-| `get_sensor` | one sensor by id |
+| tool            | what it does                                                     |
+| --------------- | ---------------------------------------------------------------- |
+| `list_switches` | every switch with its id, name and latest known state            |
+| `get_switch`    | one switch by id                                                 |
+| `set_switch`    | turns a light on or off, and **waits for the device to confirm** |
+| `list_sensors`  | every sensor with its latest temperature and humidity            |
+| `get_sensor`    | one sensor by id                                                 |
 
 Resources: `devices://all`, `switch://{id}`, `sensor://{id}`.
 

@@ -1,16 +1,22 @@
-import { Request, Response, Router } from 'express';
-import { McpServer } from '@modelcontextprotocol/server';
-import { NodeStreamableHTTPServerTransport, originValidation } from '@modelcontextprotocol/node';
-import { DeviceService } from '../domain/DeviceService';
-import { registerMcpHandlers } from './registerMcpHandlers';
-import logger from '../logger';
+import { Request, Response, Router } from "express";
+import { McpServer } from "@modelcontextprotocol/server";
+import {
+  NodeStreamableHTTPServerTransport,
+  originValidation,
+} from "@modelcontextprotocol/node";
+import { DeviceService } from "../domain/DeviceService";
+import { registerMcpHandlers } from "./registerMcpHandlers";
+import logger from "../logger";
 
-export const MCP_SERVER_NAME = 'control-cove';
-export const MCP_SERVER_VERSION = '1.0.0';
+export const MCP_SERVER_NAME = "control-cove";
+export const MCP_SERVER_VERSION = "1.0.0";
 
 /** Builds a fully wired MCP server. One per request — see createMcpRouter. */
 export function createMcpServer(deviceService: DeviceService): McpServer {
-  const server = new McpServer({ name: MCP_SERVER_NAME, version: MCP_SERVER_VERSION });
+  const server = new McpServer({
+    name: MCP_SERVER_NAME,
+    version: MCP_SERVER_VERSION,
+  });
   registerMcpHandlers(server, deviceService);
   return server;
 }
@@ -22,11 +28,11 @@ export function createMcpServer(deviceService: DeviceService): McpServer {
  * cross-origin page gets 403.
  */
 const allowedOrigins = (): string[] => {
-  const configured = (process.env.MCP_ALLOWED_ORIGINS ?? '')
-    .split(',')
+  const configured = (process.env.MCP_ALLOWED_ORIGINS ?? "")
+    .split(",")
     .map((entry) => entry.trim())
     .filter((entry) => entry.length > 0);
-  return ['localhost', '127.0.0.1', '[::1]', ...configured];
+  return ["localhost", "127.0.0.1", "[::1]", ...configured];
 };
 
 /**
@@ -55,7 +61,7 @@ export function createMcpRouter(deviceService: DeviceService): Router {
       enableJsonResponse: true,
     });
 
-    res.on('close', () => {
+    res.on("close", () => {
       void transport.close();
       void server.close();
     });
@@ -68,16 +74,16 @@ export function createMcpRouter(deviceService: DeviceService): Router {
       logger.error(`[MCP] Request failed: ${String(error)}`);
       if (!res.headersSent) {
         res.status(500).json({
-          jsonrpc: '2.0',
-          error: { code: -32603, message: 'Internal server error' },
+          jsonrpc: "2.0",
+          error: { code: -32603, message: "Internal server error" },
           id: null,
         });
       }
     }
   };
 
-  router.post('/', handle);
-  router.get('/', handle);
-  router.delete('/', handle);
+  router.post("/", handle);
+  router.get("/", handle);
+  router.delete("/", handle);
   return router;
 }

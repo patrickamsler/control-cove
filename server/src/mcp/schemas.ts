@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 /**
  * Tool input schemas for the MCP adapter.
@@ -15,12 +15,16 @@ import { z } from 'zod';
 const switchId = z
   .number()
   .int()
-  .describe('Numeric id of the switch, as returned by list_switches. Switch ids are separate from sensor ids.');
+  .describe(
+    "Numeric id of the switch, as returned by list_switches. Switch ids are separate from sensor ids.",
+  );
 
 const sensorId = z
   .number()
   .int()
-  .describe('Numeric id of the sensor, as returned by list_sensors. Sensor ids are separate from switch ids.');
+  .describe(
+    "Numeric id of the sensor, as returned by list_sensors. Sensor ids are separate from switch ids.",
+  );
 
 export const emptyInput = z.object({});
 
@@ -30,5 +34,5 @@ export const sensorIdInput = z.object({ id: sensorId });
 
 export const setSwitchInput = z.object({
   id: switchId,
-  state: z.boolean().describe('true turns the light on, false turns it off.'),
+  state: z.boolean().describe("true turns the light on, false turns it off."),
 });
