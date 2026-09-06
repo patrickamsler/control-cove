@@ -14,10 +14,16 @@
     "format:check": "prettier --check .",
     "test": "npm run test:client && npm run test:server",
     "test:client": "npm test --prefix client",
-    "test:server": "npm test --prefix server"
+    "test:server": "npm test --prefix server",
+    "prepare": "husky"
   },
   "devDependencies": {
     "concurrently": "^10.0.5",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.5.0",
     "prettier": "^3.9.6"
+  },
+  "lint-staged": {
+    "*": "prettier --write --ignore-unknown"
   }
 }
